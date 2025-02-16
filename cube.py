@@ -3,12 +3,45 @@ import random
 from config import CUBE_COLORS, CELL_SIZE, GRID_COLS, GRID_ROWS, SHADOW_COLOR, CUBE_HOVER_COLOR
 
 class Cube:
-    def __init__(self, x: int, y: int, size: int):
+
+    def __init__(self, x: int, y: int, size: int, destination: tuple):
         self.rect = pygame.Rect(x + 5, y + 5, size - 10, size - 10)
         self.color = CUBE_COLORS[0]
         self.hover = False
         self.grid_x = x // CELL_SIZE
         self.grid_y = y // CELL_SIZE
+        self.destination = destination
+        self.path = self.calculate_path()
+    
+    def calculate_path(self) -> list[tuple]:
+        path = []
+        current_x, current_y = self.grid_x, self.grid_y
+        dest_x, dest_y = self.destination
+
+        while (current_y != dest_y):
+
+            if current_y < dest_y:
+                current_y += 1
+                path.append((0,1)) # Go down
+            elif current_y > dest_y:
+                current_y -= 1
+                path.append((0,-1)) # Go up
+
+        while (current_x != dest_x):
+
+            if current_x < dest_x:
+                current_x += 1
+                path.append((1,0)) # Go right
+            elif current_x > dest_x:
+                current_x -= 1
+                path.append((-1,0)) # Go left
+        
+        return path
+    
+    def is_reached(self) -> bool:
+        if self.path:
+            return False
+        return True
 
     def move_random(self):
         # Get possible directions (up, right, down, left)
@@ -23,6 +56,19 @@ class Cube:
         
         if valid_moves:
             dx, dy = random.choice(valid_moves)
+            self.grid_x += dx
+            self.grid_y += dy
+            self.rect.x = (self.grid_x * CELL_SIZE) + 5
+            self.rect.y = (self.grid_y * CELL_SIZE) + 5
+    
+    def move(self):
+        if self.path:
+            dx, dy = self.path.pop(0)
+        else:
+            dx, dy = (0,0)
+        new_x = self.grid_x + dx
+        new_y = self.grid_y + dy
+        if 0 <= new_x < GRID_COLS and 0 <= new_y < GRID_ROWS:
             self.grid_x += dx
             self.grid_y += dy
             self.rect.x = (self.grid_x * CELL_SIZE) + 5

@@ -9,7 +9,7 @@ class Game:
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("IEA")
         self.clock = pygame.time.Clock()
-        self.cubes = self.create_cubes()
+        self.cubes = self.create_my_cube()
         self.selected_cube = None
         self.last_move_time = pygame.time.get_ticks()
 
@@ -19,6 +19,12 @@ class Game:
             x = (i % GRID_COLS) * CELL_SIZE
             y = (GRID_ROWS - 1 - (i // GRID_COLS)) * CELL_SIZE
             cubes.append(Cube(x, y, CELL_SIZE))
+        return cubes
+    
+    def create_my_cube(self) -> List[Cube]:
+        cubes = []
+        my_cube = Cube(0, 540, CELL_SIZE, (480 // CELL_SIZE,60 // CELL_SIZE))
+        cubes.append(my_cube)
         return cubes
 
     def move_all_cubes(self):
@@ -39,6 +45,29 @@ class Game:
         for i in range(GRID_ROWS + 1):
             pygame.draw.line(self.screen, GRID_LINES,
                            (0, i * CELL_SIZE), (WIDTH, i * CELL_SIZE))
+    
+    def update_grid(self, cubes):
+        self.draw_grid()
+        for cube in cubes:
+            cube.draw(self.screen)
+        pygame.display.flip()
+            
+    def my_run(self):
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+            current_time = pygame.time.get_ticks()
+            my_cube = self.cubes[0]
+            if current_time - self.last_move_time >= MOVE_INTERVAL:
+                if my_cube.is_reached() is False:
+                    my_cube.move()
+                    self.last_move_time = current_time
+
+            self.update_grid([my_cube])
+            
+        pygame.quit()
 
     def run(self):
         running = True
