@@ -42,24 +42,6 @@ class Cube:
         if self.path:
             return False
         return True
-
-    def move_random(self):
-        # Get possible directions (up, right, down, left)
-        directions = [(0, -1), (1, 0), (0, 1), (-1, 0)]
-        valid_moves = []
-        
-        for dx, dy in directions:
-            new_x = self.grid_x + dx
-            new_y = self.grid_y + dy
-            if 0 <= new_x < GRID_COLS and 0 <= new_y < GRID_ROWS:
-                valid_moves.append((dx, dy))
-        
-        if valid_moves:
-            dx, dy = random.choice(valid_moves)
-            self.grid_x += dx
-            self.grid_y += dy
-            self.rect.x = (self.grid_x * CELL_SIZE) + 5
-            self.rect.y = (self.grid_y * CELL_SIZE) + 5
     
     def move(self):
         if self.path:
