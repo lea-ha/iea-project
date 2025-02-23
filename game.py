@@ -15,7 +15,8 @@ class Game:
         
     def create_cube(self) -> List[Cube]:
         cubes = []
-        my_cube = Cube(0, 540, CELL_SIZE, (480 // CELL_SIZE, 60 // CELL_SIZE))
+        my_cube = Cube(0, 540, CELL_SIZE, (4,2))  #destination should be changed later to be passed as a parameter
+        # my_cube = Cube(0, 540, CELL_SIZE, (480 // CELL_SIZE, 60 // CELL_SIZE))
         cubes.append(my_cube)
         return cubes
     
@@ -30,6 +31,18 @@ class Game:
         for i in range(GRID_ROWS + 1):
             pygame.draw.line(self.screen, GRID_LINES,
                            (0, i * CELL_SIZE), (WIDTH, i * CELL_SIZE))
+            
+        if self.cubes:
+            for cube in self.cubes:  # Highlight all cubes' destinations
+                destination_x, destination_y = cube.destination  
+                destination_surface = pygame.Surface((CELL_SIZE, CELL_SIZE), pygame.SRCALPHA)
+                destination_surface.fill((0, 255, 0, 100))  
+                pygame.draw.rect(destination_surface, (0, 200, 0, 180), (0, 0, CELL_SIZE, CELL_SIZE), border_radius=10)
+                self.screen.blit(destination_surface, (destination_x * CELL_SIZE, destination_y * CELL_SIZE))
+                pygame.draw.rect(self.screen, (0, 255, 0), 
+                                pygame.Rect(destination_x * CELL_SIZE, destination_y * CELL_SIZE, CELL_SIZE, CELL_SIZE), 
+                                width=3, border_radius=10)
+
     
     def update_grid(self, cubes):
         self.draw_grid()
