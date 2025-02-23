@@ -2,3 +2,4 @@ pygame
 random
 math
 typing
+astar
