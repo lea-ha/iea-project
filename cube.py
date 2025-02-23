@@ -1,8 +1,4 @@
 import pygame
-import random
-from config import CUBE_COLORS, CELL_SIZE, GRID_COLS, GRID_ROWS, SHADOW_COLOR, CUBE_HOVER_COLOR
-
-import pygame
 from astar import find_path
 from config import CUBE_COLORS, CELL_SIZE, GRID_COLS, GRID_ROWS, SHADOW_COLOR, CUBE_HOVER_COLOR
 
@@ -14,7 +10,10 @@ class Cube:
         self.grid_x = x // CELL_SIZE
         self.grid_y = y // CELL_SIZE
         self.destination = destination
+        print(f"\nInitial Position: ({self.grid_x}, {self.grid_y})")
+        print(f"Destination: {self.destination}")
         self.path = self.calculate_path()
+        print(f"Full path movements: {self.path}\n")
     
     def get_neighbors(self, pos):
         """Get valid neighboring positions"""
@@ -41,11 +40,14 @@ class Cube:
         )
         
         if not path_nodes:
+            print("No path found!")
             return []
         
         # Convert path nodes to movement instructions
         movements = []
         path_nodes = list(path_nodes)
+        print(f"Path nodes: {path_nodes}")
+        
         for i in range(len(path_nodes) - 1):
             current = path_nodes[i]
             next_pos = path_nodes[i + 1]
@@ -63,15 +65,21 @@ class Cube:
     def move(self):
         if self.path:
             dx, dy = self.path.pop(0)
+            new_x = self.grid_x + dx
+            new_y = self.grid_y + dy
+            
+            print(f"Moving from ({self.grid_x}, {self.grid_y}) to ({new_x}, {new_y})")
+            print(f"Remaining moves: {self.path}")
+            
+            if 0 <= new_x < GRID_COLS and 0 <= new_y < GRID_ROWS:
+                self.grid_x = new_x
+                self.grid_y = new_y
+                self.rect.x = (self.grid_x * CELL_SIZE) + 5
+                self.rect.y = (self.grid_y * CELL_SIZE) + 5
         else:
+            if self.grid_x == self.destination[0] and self.grid_y == self.destination[1]:
+                print("Destination reached!")
             dx, dy = (0, 0)
-        new_x = self.grid_x + dx
-        new_y = self.grid_y + dy
-        if 0 <= new_x < GRID_COLS and 0 <= new_y < GRID_ROWS:
-            self.grid_x += dx
-            self.grid_y += dy
-            self.rect.x = (self.grid_x * CELL_SIZE) + 5
-            self.rect.y = (self.grid_y * CELL_SIZE) + 5
     
     def draw(self, screen: pygame.Surface):
         # Shadow
