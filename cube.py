@@ -1,9 +1,33 @@
 import pygame
 from astar import find_path
 from config import CUBE_COLORS, CELL_SIZE, GRID_COLS, GRID_ROWS, SHADOW_COLOR, CUBE_HOVER_COLOR
+from typing import List, Tuple, Callable, Optional, Iterator
+
 
 class Cube:
-    def __init__(self, x: int, y: int, size: int, destination: tuple):
+    """
+    A movable cube object that navigates on a grid using A* pathfinding.
+    
+    Attributes:
+        rect (pygame.Rect): Rectangle representing the cube's position and size
+        color (tuple): RGB color of the cube
+        hover (bool): Whether the cube is being hovered over
+        grid_x (int): Current X position on the grid
+        grid_y (int): Current Y position on the grid
+        destination (tuple): Target (x, y) coordinates on grid
+        path (list): List of movement steps to reach the destination
+    """
+    
+    def __init__(self, x: int, y: int, size: int, destination: Tuple[int, int]) -> None:
+        """
+        Initialize a cube object with position and destination.
+        
+        Args:
+            x: Initial X coordinate in pixels
+            y: Initial Y coordinate in pixels  
+            size: Size of the cube in pixels
+            destination: Target (grid_x, grid_y) coordinates on grid
+        """
         self.rect = pygame.Rect(x + 5, y + 5, size - 10, size - 10)
         self.color = CUBE_COLORS[0]
         self.hover = False
@@ -15,8 +39,16 @@ class Cube:
         self.path = self.calculate_path()
         print(f"Full path movements: {self.path}\n")
     
-    def get_neighbors(self, pos):
-        """Get valid neighboring positions"""
+    def get_neighbors(self, pos: Tuple[int, int]) -> List[Tuple[int, int]]:
+        """
+        Get valid neighboring positions on the grid.
+        
+        Args:
+            pos: Current (x, y) grid position
+        
+        Returns:
+            List of valid neighboring (x, y) positions as tuples
+        """
         x, y = pos
         neighbors = []
         for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:  # Down, Right, Up, Left
@@ -25,8 +57,13 @@ class Cube:
                 neighbors.append((new_x, new_y))
         return neighbors
     
-    def calculate_path(self) -> list:
-        """Calculate path using astar package"""
+    def calculate_path(self) -> List[Tuple[int, int]]:
+        """
+        Calculate path using A* algorithm from the astar package.
+        
+        Returns:
+            List of movement instructions as tuples (dx, dy)
+        """
         start = (self.grid_x, self.grid_y)
         goal = self.destination
         
@@ -58,11 +95,23 @@ class Cube:
         return movements
     
     def is_reached(self) -> bool:
+        """
+        Check if the cube has reached its destination.
+        
+        Returns:
+            True if the path is empty (destination reached), False otherwise
+        """
         if self.path:
             return False
         return True
     
-    def move(self):
+    def move(self) -> None:
+        """
+        Move the cube one step along its path.
+        
+        If path exists, pops the next movement instruction and updates position.
+        If destination is reached, prints confirmation message.
+        """
         if self.path:
             dx, dy = self.path.pop(0)
             new_x = self.grid_x + dx
@@ -79,9 +128,20 @@ class Cube:
         else:
             if self.grid_x == self.destination[0] and self.grid_y == self.destination[1]:
                 print("Destination reached!")
-            dx, dy = (0, 0)
     
-    def draw(self, screen: pygame.Surface):
+    def draw(self, screen: pygame.Surface) -> None:
+        """
+        Render the cube on the screen with visual effects.
+        
+        Args:
+            screen: Pygame surface to draw on
+            
+        Visual effects include:
+        - Shadow effect with offset
+        - Gradient lighting effect
+        - Hover state color change
+        - Rounded corners
+        """
         # Shadow
         shadow_surface = pygame.Surface((self.rect.width, self.rect.height), pygame.SRCALPHA)
         pygame.draw.rect(shadow_surface, SHADOW_COLOR, shadow_surface.get_rect(), border_radius=10)
