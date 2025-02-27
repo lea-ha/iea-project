@@ -1,5 +1,6 @@
 import pygame
-from typing import List, Optional
+import random
+from typing import List, Optional, Dict, Set, Tuple
 from config import WIDTH, HEIGHT, CUBE_COUNT, CELL_SIZE, GRID_COLS, GRID_ROWS, MOVE_INTERVAL, GRID_LINES, BACKGROUND
 from cube import Cube
 
@@ -17,6 +18,7 @@ class Game:
         cubes (List[Cube]): List of cube objects in the game
         selected_cube (Optional[Cube]): Currently selected cube or None
         last_move_time (int): Timestamp of the last automatic movement
+        occupied_positions (Dict[Tuple[int, int], Cube]): Tracks which grid positions are occupied
     """
     
     def __init__(self) -> None:
@@ -26,24 +28,77 @@ class Game:
         """
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("IEA")
+        pygame.display.set_caption("Multi-Cube Pathfinding")
         self.clock = pygame.time.Clock()
-        self.cubes = self.create_cube()
+        # Dictionary to track which positions are occupied and by which cube
+        self.occupied_positions: Dict[Tuple[int, int], Cube] = {}
+        self.cubes = self.create_cubes()
         self.selected_cube: Optional[Cube] = None
         self.last_move_time = pygame.time.get_ticks()
         
-    def create_cube(self) -> List[Cube]:
+    def create_cubes(self) -> List[Cube]:
         """
-        Create and initialize the cube objects for the game.
+        Create and initialize multiple cube objects for the game.
         
         Returns:
             A list containing the initialized cube objects
         """
         cubes = []
-        my_cube = Cube(0, 540, CELL_SIZE, (4, 2))  # destination should be changed later to be passed as a parameter
-        # my_cube = Cube(0, 540, CELL_SIZE, (480 // CELL_SIZE, 60 // CELL_SIZE))
-        cubes.append(my_cube)
+        # Generate random but unique starting positions and destinations
+        used_positions = set()
+        used_destinations = set()
+        
+        # Function to generate a random position not in the given set
+        def generate_unique_position(used: Set[Tuple[int, int]]) -> Tuple[int, int]:
+            while True:
+                x = random.randint(0, GRID_COLS - 1)
+                y = random.randint(0, GRID_ROWS - 1)
+                pos = (x, y)
+                if pos not in used:
+                    used.add(pos)
+                    return pos
+        
+        # Create cubes with unique positions and destinations
+        for i in range(min(CUBE_COUNT, GRID_COLS * GRID_ROWS // 2)):  # Limit to half the grid cells to ensure space
+            # Generate starting position
+            start_grid_pos = generate_unique_position(used_positions)
+            start_x = start_grid_pos[0] * CELL_SIZE
+            start_y = start_grid_pos[1] * CELL_SIZE
+            
+            # Generate destination
+            dest_pos = generate_unique_position(used_destinations)
+            
+            # Create the cube
+            my_cube = Cube(start_x, start_y, CELL_SIZE, dest_pos, i, self.get_occupied_positions)
+            
+            # Register the cube's initial position
+            pos = (my_cube.grid_x, my_cube.grid_y)
+            self.occupied_positions[pos] = my_cube
+            cubes.append(my_cube)
+            
         return cubes
+    
+    def get_occupied_positions(self) -> Set[Tuple[int, int]]:
+        """
+        Get set of all currently occupied grid positions.
+        
+        Returns:
+            Set of (x, y) tuples representing occupied grid positions
+        """
+        return set(self.occupied_positions.keys())
+    
+    def update_occupied_positions(self, cube: Cube, old_pos: Tuple[int, int], new_pos: Tuple[int, int]) -> None:
+        """
+        Update the occupied positions when a cube moves.
+        
+        Args:
+            cube: The cube that moved
+            old_pos: Previous (x, y) position
+            new_pos: New (x, y) position
+        """
+        if old_pos in self.occupied_positions:
+            del self.occupied_positions[old_pos]
+        self.occupied_positions[new_pos] = cube
     
     def draw_grid(self) -> None:
         """
@@ -122,21 +177,67 @@ class Game:
                         grid_x = (mouse_pos[0] - CELL_SIZE//2) // CELL_SIZE
                         grid_y = (mouse_pos[1] - CELL_SIZE//2) // CELL_SIZE
                         if 0 <= grid_x < GRID_COLS and 0 <= grid_y < GRID_ROWS:
+                            # Make sure the position isn't occupied by another cube
+                            pos = (grid_x, grid_y)
+                            current_pos = (self.selected_cube.grid_x, self.selected_cube.grid_y)
+                            if pos != current_pos and pos in self.occupied_positions:
+                                continue  # Skip if position is occupied
+                                
+                            # Update occupied positions
+                            self.update_occupied_positions(
+                                self.selected_cube, 
+                                (self.selected_cube.grid_x, self.selected_cube.grid_y),
+                                (grid_x, grid_y)
+                            )
+                            
                             self.selected_cube.grid_x = grid_x
                             self.selected_cube.grid_y = grid_y
                             self.selected_cube.rect.x = (grid_x * CELL_SIZE) + 5
                             self.selected_cube.rect.y = (grid_y * CELL_SIZE) + 5
+                            
+                            # Recalculate path after drag and drop
+                            self.selected_cube.path = self.selected_cube.calculate_path()
             
-            # Automatic movement
+            # Automatic movement - use a priority system to resolve conflicts
             if current_time - self.last_move_time >= MOVE_INTERVAL:
-                for cube in self.cubes:
-                    if not cube.is_reached() and not self.selected_cube:
-                        cube.move()
+                # Sort cubes by distance to destination (prioritize cubes closer to their goals)
+                cubes_to_move = [c for c in self.cubes if not c.is_reached() and c != self.selected_cube]
+                cubes_to_move.sort(key=lambda c: c.distance_to_destination())
+                
+                # Process cubes in priority order
+                for cube in cubes_to_move:
+                    old_pos = (cube.grid_x, cube.grid_y)
+                    cube.move(self.occupied_positions)
+                    new_pos = (cube.grid_x, cube.grid_y)
+                    
+                    # Update occupied positions after movement
+                    if old_pos != new_pos:
+                        self.update_occupied_positions(cube, old_pos, new_pos)
+                
                 self.last_move_time = current_time
             
             self.draw_grid()
+            
+            # Add destination labels
+            font = pygame.font.SysFont('Arial', 16)
+            for cube in self.cubes:
+                dest_x, dest_y = cube.destination
+                label = font.render(f"{cube.cube_id + 1}", True, (255, 255, 255))
+                label_rect = label.get_rect(center=(dest_x * CELL_SIZE + CELL_SIZE//2, 
+                                                   dest_y * CELL_SIZE + CELL_SIZE//2))
+                self.screen.blit(label, label_rect)
+            
+            # Draw cubes on top
             for cube in self.cubes:
                 cube.draw(self.screen)
+            
+            # Display stats
+            completed = sum(1 for cube in self.cubes if cube.is_reached() and 
+                           (cube.grid_x, cube.grid_y) == cube.destination)
+            total = len(self.cubes)
+            stats_text = f"Completed: {completed}/{total}"
+            stats_surf = font.render(stats_text, True, (255, 255, 255))
+            self.screen.blit(stats_surf, (10, 10))
             
             pygame.display.flip()
             self.clock.tick(60)
