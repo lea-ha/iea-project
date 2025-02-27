@@ -28,10 +28,12 @@ class Game:
         """
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Multi-Cube Pathfinding")
+        pygame.display.set_caption("Shapeshifter")
         self.clock = pygame.time.Clock()
+
         # Dictionary to track which positions are occupied and by which cube
         self.occupied_positions: Dict[Tuple[int, int], Cube] = {}
+
         self.cubes = self.create_cubes()
         self.selected_cube: Optional[Cube] = None
         self.last_move_time = pygame.time.get_ticks()
@@ -44,29 +46,34 @@ class Game:
             A list containing the initialized cube objects
         """
         cubes = []
-        # Generate random but unique starting positions and destinations
         used_positions = set()
-        used_destinations = set()
         
-        # Function to generate a random position not in the given set
-        def generate_unique_position(used: Set[Tuple[int, int]]) -> Tuple[int, int]:
-            while True:
-                x = random.randint(0, GRID_COLS - 1)
-                y = random.randint(0, GRID_ROWS - 1)
-                pos = (x, y)
-                if pos not in used:
-                    used.add(pos)
-                    return pos
+        # Predetermined destinations (rectangle in the center in this case)
+        predefined_destinations = [
+            (3, 3), (4, 3), (5, 3), (6, 3), (7, 3),  
+            (3, 4), (4, 4), (5, 4), (6, 4), (7, 4),  
+            (3, 5), (4, 5), (5, 5), (6, 5), (7, 5),  
+            (3, 6), (4, 6), (5, 6), (6, 6), (7, 6)
+        ]
         
-        # Create cubes with unique positions and destinations
-        for i in range(min(CUBE_COUNT, GRID_COLS * GRID_ROWS // 2)):  # Limit to half the grid cells to ensure space
-            # Generate starting position
-            start_grid_pos = generate_unique_position(used_positions)
+        # Define predetermined starting positions (Here, bottom 2 rows) (This wont be changed we always want them here)
+        predefined_starts = [
+            (0, 8), (1, 8), (2, 8), (3, 8), (4, 8), (5, 8), (6, 8), (7, 8), (8, 8), (9, 8),  
+            (0, 9), (1, 9), (2, 9), (3, 9), (4, 9), (5, 9), (6, 9), (7, 9), (8, 9), (9, 9)
+
+        ]
+        
+        # Create cubes with predefined positions and destinations (This should be automated later by calculating in a way which cubes should go to which destination)
+        for i in range(min(CUBE_COUNT, len(predefined_destinations))):
+            # Use predefined starting position
+            start_grid_pos = predefined_starts[i]
+            used_positions.add(start_grid_pos)  # Mark as used
+            
             start_x = start_grid_pos[0] * CELL_SIZE
             start_y = start_grid_pos[1] * CELL_SIZE
             
-            # Generate destination
-            dest_pos = generate_unique_position(used_destinations)
+            # Use predefined destination
+            dest_pos = predefined_destinations[i]
             
             # Create the cube
             my_cube = Cube(start_x, start_y, CELL_SIZE, dest_pos, i, self.get_occupied_positions)
@@ -75,7 +82,7 @@ class Game:
             pos = (my_cube.grid_x, my_cube.grid_y)
             self.occupied_positions[pos] = my_cube
             cubes.append(my_cube)
-            
+        
         return cubes
     
     def get_occupied_positions(self) -> Set[Tuple[int, int]]:
@@ -162,41 +169,42 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    mouse_pos = pygame.mouse.get_pos()
-                    for cube in self.cubes:
-                        if cube.rect.collidepoint(mouse_pos):
-                            self.selected_cube = cube
-                elif event.type == pygame.MOUSEBUTTONUP:
-                    self.selected_cube = None
-                elif event.type == pygame.MOUSEMOTION:
-                    mouse_pos = pygame.mouse.get_pos()
-                    for cube in self.cubes:
-                        cube.hover = cube.rect.collidepoint(mouse_pos)
-                    if self.selected_cube:
-                        grid_x = (mouse_pos[0] - CELL_SIZE//2) // CELL_SIZE
-                        grid_y = (mouse_pos[1] - CELL_SIZE//2) // CELL_SIZE
-                        if 0 <= grid_x < GRID_COLS and 0 <= grid_y < GRID_ROWS:
-                            # Make sure the position isn't occupied by another cube
-                            pos = (grid_x, grid_y)
-                            current_pos = (self.selected_cube.grid_x, self.selected_cube.grid_y)
-                            if pos != current_pos and pos in self.occupied_positions:
-                                continue  # Skip if position is occupied
+            #This part of the code is to drag cubes ourselves and drop them on the screen, for now we dont need this so i commented it out.
+                # elif event.type == pygame.MOUSEBUTTONDOWN:
+                #     mouse_pos = pygame.mouse.get_pos()
+                #     for cube in self.cubes:
+                #         if cube.rect.collidepoint(mouse_pos):
+                #             self.selected_cube = cube
+                # elif event.type == pygame.MOUSEBUTTONUP:
+                #     self.selected_cube = None
+                # elif event.type == pygame.MOUSEMOTION:
+                #     mouse_pos = pygame.mouse.get_pos()
+                #     for cube in self.cubes:
+                #         cube.hover = cube.rect.collidepoint(mouse_pos)
+                #     if self.selected_cube:
+                #         grid_x = (mouse_pos[0] - CELL_SIZE//2) // CELL_SIZE
+                #         grid_y = (mouse_pos[1] - CELL_SIZE//2) // CELL_SIZE
+                #         if 0 <= grid_x < GRID_COLS and 0 <= grid_y < GRID_ROWS:
+                #             # Make sure the position isn't occupied by another cube
+                #             pos = (grid_x, grid_y)
+                #             current_pos = (self.selected_cube.grid_x, self.selected_cube.grid_y)
+                #             if pos != current_pos and pos in self.occupied_positions:
+                #                 continue  # Skip if position is occupied
                                 
-                            # Update occupied positions
-                            self.update_occupied_positions(
-                                self.selected_cube, 
-                                (self.selected_cube.grid_x, self.selected_cube.grid_y),
-                                (grid_x, grid_y)
-                            )
+                #             # Update occupied positions
+                #             self.update_occupied_positions(
+                #                 self.selected_cube, 
+                #                 (self.selected_cube.grid_x, self.selected_cube.grid_y),
+                #                 (grid_x, grid_y)
+                #             )
                             
-                            self.selected_cube.grid_x = grid_x
-                            self.selected_cube.grid_y = grid_y
-                            self.selected_cube.rect.x = (grid_x * CELL_SIZE) + 5
-                            self.selected_cube.rect.y = (grid_y * CELL_SIZE) + 5
+                #             self.selected_cube.grid_x = grid_x
+                #             self.selected_cube.grid_y = grid_y
+                #             self.selected_cube.rect.x = (grid_x * CELL_SIZE) + 5
+                #             self.selected_cube.rect.y = (grid_y * CELL_SIZE) + 5
                             
-                            # Recalculate path after drag and drop
-                            self.selected_cube.path = self.selected_cube.calculate_path()
+                #             # Recalculate path after drag and drop
+                #             self.selected_cube.path = self.selected_cube.calculate_path()
             
             # Automatic movement - use a priority system to resolve conflicts
             if current_time - self.last_move_time >= MOVE_INTERVAL:
