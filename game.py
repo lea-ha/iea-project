@@ -1,8 +1,8 @@
 import pygame
-import random
 from typing import List, Optional, Dict, Set, Tuple
-from config import WIDTH, HEIGHT, CUBE_COUNT, CELL_SIZE, GRID_COLS, GRID_ROWS, MOVE_INTERVAL, GRID_LINES, BACKGROUND
+from config import WIDTH, HEIGHT, CELL_SIZE, GRID_COLS, GRID_ROWS, MOVE_INTERVAL, GRID_LINES, BACKGROUND, CUBE_COUNT
 from cube import Cube
+from hungarian_algorithm import hungarian_algorithm, create_cost_matrix, manhattan_distance
 
 
 class Game:
@@ -49,40 +49,36 @@ class Game:
         used_positions = set()
         
         # Predetermined destinations (rectangle in the center in this case)
-        predefined_destinations = [
-            (3, 3), (4, 3), (5, 3), (6, 3), (7, 3),  
-            (3, 4), (4, 4), (5, 4), (6, 4), (7, 4),  
-            (3, 5), (4, 5), (5, 5), (6, 5), (7, 5),  
-            (3, 6), (4, 6), (5, 6), (6, 6), (7, 6)
+        destinations = [
+            (3, 1), (4, 1), (5, 1), (6, 1),
+            (3, 2), (4, 2), (5, 2), (6, 2),
+            (3, 3), (4, 3), (5, 3), (6, 3),
+            (3, 4), (4, 4), (5, 4), (6, 4),
+            (3, 5), (4, 5), (5, 5), (6, 5)
         ]
         
         # Define predetermined starting positions (Here, bottom 2 rows) (This wont be changed we always want them here)
-        predefined_starts = [
+        origins = [
             (0, 8), (1, 8), (2, 8), (3, 8), (4, 8), (5, 8), (6, 8), (7, 8), (8, 8), (9, 8),  
             (0, 9), (1, 9), (2, 9), (3, 9), (4, 9), (5, 9), (6, 9), (7, 9), (8, 9), (9, 9)
-
         ]
-        
-        # Create cubes with predefined positions and destinations (This should be automated later by calculating in a way which cubes should go to which destination)
-        for i in range(min(CUBE_COUNT, len(predefined_destinations))):
-            # Use predefined starting position
-            start_grid_pos = predefined_starts[i]
-            used_positions.add(start_grid_pos)  # Mark as used
-            
-            start_x = start_grid_pos[0] * CELL_SIZE
-            start_y = start_grid_pos[1] * CELL_SIZE
-            
-            # Use predefined destination
-            dest_pos = predefined_destinations[i]
-            
+        cost_matrix = create_cost_matrix(origins, destinations, manhattan_distance)
+        hungarian_algorithm(cost_matrix)
+
+        for i in range(CUBE_COUNT):
+            used_positions.add(origins[i])
+
+            start_x = origins[i][0] * CELL_SIZE
+            start_y = origins[i][1] * CELL_SIZE
+
             # Create the cube
-            my_cube = Cube(start_x, start_y, CELL_SIZE, dest_pos, i, self.get_occupied_positions)
-            
+            my_cube = Cube(start_x, start_y, CELL_SIZE, destinations[i], i, self.get_occupied_positions)
+
             # Register the cube's initial position
             pos = (my_cube.grid_x, my_cube.grid_y)
             self.occupied_positions[pos] = my_cube
             cubes.append(my_cube)
-        
+
         return cubes
     
     def get_occupied_positions(self) -> Set[Tuple[int, int]]:

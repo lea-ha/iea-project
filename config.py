@@ -11,7 +11,7 @@ BACKGROUND = (18, 18, 18)
 GRID_LINES = (45, 45, 45)
 CUBE_COLORS = [
     (0, 184, 148),     # Turquoise
-    #We can add more colors if we want and they will be chosen based on % 
+    #We can add more colors if we want, and they will be chosen based on %
 ]
 
 CUBE_HOVER_COLOR = (255, 215, 0)

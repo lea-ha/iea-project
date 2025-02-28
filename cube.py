@@ -4,6 +4,8 @@ from astar import find_path
 from config import CUBE_COLORS, CELL_SIZE, GRID_COLS, GRID_ROWS, SHADOW_COLOR, CUBE_HOVER_COLOR
 from typing import List, Tuple, Callable, Optional, Iterator, Dict, Set
 
+from hungarian_algorithm import manhattan_distance
+
 
 class Cube:
     """
@@ -53,7 +55,7 @@ class Cube:
         self.path = self.calculate_path()
         self.waiting = False
         self.wait_counter = 0
-        self.max_wait = random.randint(1, 3)  # Random wait time to prevent deadlocks
+        self.max_wait = 1
         
         print(f"\nCube {cube_id} - Initial Position: ({self.grid_x}, {self.grid_y})")
         print(f"Cube {cube_id} - Destination: {self.destination}")
@@ -130,8 +132,7 @@ class Cube:
             start=start,
             goal=goal,
             neighbors_fnct=self.get_neighbors,
-            heuristic_cost_estimate_fnct=lambda a, b: abs(b[0] - a[0]) + abs(b[1] - a[1]),
-            distance_between_fnct=lambda a, b: 1.0
+            heuristic_cost_estimate_fnct=lambda a, b: abs(b[0] - a[0]) + abs(b[1] - a[1])
         )
         
         if not path_nodes:
@@ -204,7 +205,13 @@ class Cube:
                 # If still no path, go into waiting state
                 self.waiting = True
                 self.wait_counter = 0
-                self.max_wait = random.randint(1, 3)  # Random wait to prevent synchronization
+                distance_from_goal = manhattan_distance((self.grid_x, self.grid_y), self.destination)
+                if distance_from_goal < 3:
+                    self.max_wait = 1
+                elif distance_from_goal < 5:
+                    self.max_wait = 2
+                else:
+                    self.max_wait = 3
                 return
                 
         # Check if the next move is valid
