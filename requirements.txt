@@ -1,5 +1,7 @@
-pygame
-typing
-astar
-numpy
-scipy
+pygame~=2.6.1
+typing~=3.7.4.3
+astar~=0.99
+numpy~=2.2.3
+scipy~=1.15.2
+requests~=2.32.3
+dataclasses~=0.6
