@@ -1,5 +1,5 @@
 import pygame
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Dict, Tuple, Set
 from config import WIDTH, HEIGHT, CELL_SIZE, MOVE_INTERVAL, GRID_LINES, BACKGROUND
 from cube import Cube
 from request import Coordinate, AgentPath
@@ -12,7 +12,9 @@ class Game:
 
     def __init__(self, agent_paths: List[AgentPath]) -> None:
         """
-        Initialize the game:
+        Initialize the game with agent paths and simulation settings.
+        
+        Args:
             agent_paths: A list of AgentPath objects, each containing an agent ID and a list of Coordinates.
         """
         pygame.init()
@@ -27,6 +29,7 @@ class Game:
         self.cubes = self.create_cubes()
         self.selected_cube: Optional[Cube] = None
         self.last_move_time = pygame.time.get_ticks()
+        self.start_time = pygame.time.get_ticks()  # Track when simulation started
 
     def create_cubes(self) -> List[Cube]:
         """
@@ -116,11 +119,21 @@ class Game:
 
     def draw_stats(self) -> None:
         """
-        Display stats about completed paths.
+        Display stats about completed paths and elapsed time.
         """
         font = pygame.font.SysFont('Arial', 16)
+        
+        # Completed cubes
         completed = sum(
             1 for cube in self.cubes if cube.is_reached() and (cube.grid_x, cube.grid_y) == cube.destination)
         stats_text = f"Completed: {completed}/{len(self.cubes)}"
         stats_surf = font.render(stats_text, True, (255, 255, 255))
         self.screen.blit(stats_surf, (10, 10))
+        
+        # Elapsed time
+        elapsed_time = (pygame.time.get_ticks() - self.start_time) // 1000  # Convert to seconds
+        minutes = elapsed_time // 60
+        seconds = elapsed_time % 60
+        time_text = f"Time: {minutes:02d}:{seconds:02d}"
+        time_surf = font.render(time_text, True, (255, 255, 255))
+        self.screen.blit(time_surf, (10, 30))
