@@ -6,27 +6,49 @@ from request import Coordinate, AgentPath
 
 
 class Game:
-    """
-    Main game class that manages the game window, cube objects, and game loop.
-    """
-
     def __init__(self, agent_paths: List[AgentPath]) -> None:
-        """
-        Initialize the game:
-            agent_paths: A list of AgentPath objects, each containing an agent ID and a list of Coordinates.
-        """
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Shapeshifter")
         self.clock = pygame.time.Clock()
-        self.agent_paths = agent_paths  # List of AgentPath objects
+        self.agent_paths = agent_paths
 
-        # Dictionary to track which positions are occupied (key is a tuple (x, y))
-        self.occupied_positions: Dict[Tuple[int, int], Cube] = {}
-
-        self.cubes = self.create_cubes()
-        self.selected_cube: Optional[Cube] = None
+        # Create cubes
+        self.cubes = [Cube(path.agent_id, path.path, {}) for path in agent_paths]
+        
         self.last_move_time = pygame.time.get_ticks()
+
+    def run(self) -> None:
+        """Main game loop."""
+        running = True
+        while running:
+            current_time = pygame.time.get_ticks()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+            if current_time - self.last_move_time >= MOVE_INTERVAL:
+                for cube in self.cubes:
+                    cube.move()
+                self.last_move_time = current_time
+                
+            # Check for overlaps after moving all cubes
+            self.check_overlaps()
+
+            self.draw()
+            pygame.display.flip()
+            self.clock.tick(60)
+
+        pygame.quit()
+
+    def draw(self) -> None:
+        """Draw the grid, cubes, and labels."""
+        self.draw_grid()
+        self.draw_destinations()
+        for cube in self.cubes:
+            cube.draw(self.screen)
+        self.draw_stats()
+
 
     def create_cubes(self) -> List[Cube]:
         """
@@ -38,27 +60,6 @@ class Game:
             cubes.append(cube)
             self.occupied_positions[(cube.grid_x, cube.grid_y)] = cube
         return cubes
-
-    def run(self) -> None:
-        """
-        Main game loop.
-        """
-        running = True
-        while running:
-            current_time = pygame.time.get_ticks()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-
-            if current_time - self.last_move_time >= MOVE_INTERVAL:
-                self.update_cubes()
-                self.last_move_time = current_time
-
-            self.draw()
-            pygame.display.flip()
-            self.clock.tick(60)
-
-        pygame.quit()
 
     def update_cubes(self) -> None:
         """
@@ -81,16 +82,6 @@ class Game:
         if old_pos in self.occupied_positions:
             del self.occupied_positions[old_pos]
         self.occupied_positions[new_pos] = cube
-
-    def draw(self) -> None:
-        """
-        Draw the grid, cubes, and labels.
-        """
-        self.draw_grid()
-        self.draw_destinations()
-        for cube in self.cubes:
-            cube.draw(self.screen)
-        self.draw_stats()
 
     def draw_grid(self) -> None:
         """
@@ -124,3 +115,17 @@ class Game:
         stats_text = f"Completed: {completed}/{len(self.cubes)}"
         stats_surf = font.render(stats_text, True, (255, 255, 255))
         self.screen.blit(stats_surf, (10, 10))
+
+# In Game class, add a method to check for overlaps
+    def check_overlaps(self):
+        """Check for cubes that occupy the same cell and mark them."""
+        positions = {}
+        for cube in self.cubes:
+            pos = (cube.grid_x, cube.grid_y)
+            if pos in positions:
+                # Mark both cubes as overlapping
+                cube.overlapping = True
+                positions[pos].overlapping = True
+            else:
+                positions[pos] = cube
+                cube.overlapping = False
