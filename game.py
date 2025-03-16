@@ -17,6 +17,11 @@ class Game:
         self.cubes = [Cube(path.agent_id, path.path, {}) for path in agent_paths]
         
         self.last_move_time = pygame.time.get_ticks()
+        
+        # Add pause functionality
+        self.paused = False
+        self.pause_button = pygame.Rect(WIDTH - 110, 10, 100, 30)
+        self.font = pygame.font.SysFont('Arial', 16)
 
     def run(self) -> None:
         """Main game loop."""
@@ -26,14 +31,19 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-
-            if current_time - self.last_move_time >= MOVE_INTERVAL:
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    # Check if pause button was clicked
+                    if self.pause_button.collidepoint(event.pos):
+                        self.paused = not self.paused
+                        
+            # Only move cubes when not paused
+            if not self.paused and current_time - self.last_move_time >= MOVE_INTERVAL:
                 for cube in self.cubes:
                     cube.move()
                 self.last_move_time = current_time
                 
-            # Check for overlaps after moving all cubes
-            self.check_overlaps()
+                # Check for overlaps after moving all cubes
+                self.check_overlaps()
 
             self.draw()
             pygame.display.flip()
@@ -48,6 +58,7 @@ class Game:
         for cube in self.cubes:
             cube.draw(self.screen)
         self.draw_stats()
+        self.draw_pause_button()
 
 
     def create_cubes(self) -> List[Cube]:
@@ -115,8 +126,22 @@ class Game:
         stats_text = f"Completed: {completed}/{len(self.cubes)}"
         stats_surf = font.render(stats_text, True, (255, 255, 255))
         self.screen.blit(stats_surf, (10, 10))
+        
+    def draw_pause_button(self) -> None:
+        """
+        Draw the pause/play button.
+        """
+        # Draw button background
+        button_color = (100, 100, 100)
+        pygame.draw.rect(self.screen, button_color, self.pause_button, border_radius=5)
+        
+        # Draw button text
+        button_text = "Resume" if self.paused else "Pause"
+        text_surf = self.font.render(button_text, True, (255, 255, 255))
+        text_rect = text_surf.get_rect(center=self.pause_button.center)
+        self.screen.blit(text_surf, text_rect)
 
-# In Game class, add a method to check for overlaps
+    # In Game class, add a method to check for overlaps
     def check_overlaps(self):
         """Check for cubes that occupy the same cell and mark them."""
         positions = {}
