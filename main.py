@@ -3,11 +3,9 @@ from request import call_cbs_api
 from destination_selector import DestinationSelector
 
 if __name__ == "__main__":
-    # First, run the destination selector to let the user pick destinations
     selector = DestinationSelector()
     origins, destinations = selector.run()
     
-    # If user closed the window without selecting anything, use default values
     if not destinations:
         print("No destinations selected, using defaults.")
         origins = [
