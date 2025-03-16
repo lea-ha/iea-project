@@ -55,14 +55,20 @@ class Game:
             if not self.paused:
                 self.elapsed_time = current_time - self.start_time
                 
-                # Only move cubes when not paused
-                if current_time - self.last_move_time >= MOVE_INTERVAL:
-                    for cube in self.cubes:
-                        cube.move()
-                    self.last_move_time = current_time
+                # Update all cubes for animation
+                for cube in self.cubes:
+                    cube.update()
                     
-                    # Check for overlaps after moving all cubes
-                    self.check_overlaps()
+                # Only move cubes when not paused and previous movement is complete
+                if current_time - self.last_move_time >= MOVE_INTERVAL:
+                    all_cubes_stable = all(not cube.is_moving for cube in self.cubes)
+                    if all_cubes_stable:
+                        for cube in self.cubes:
+                            cube.move()
+                        self.last_move_time = current_time
+                        
+                        # Check for overlaps after moving all cubes
+                        self.check_overlaps()
 
             self.draw()
             pygame.display.flip()

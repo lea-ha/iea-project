@@ -4,7 +4,6 @@ from config import CUBE_COLORS, CELL_SIZE, SHADOW_COLOR, CUBE_HOVER_COLOR, REACH
 from request import Coordinate
 
 
-# Modified version of the Cube class
 class Cube:
     def __init__(self, cube_id: int, path: List[Coordinate], occupied_positions: Dict[Tuple[int, int], 'Cube']) -> None:
         self.cube_id = cube_id
@@ -15,35 +14,93 @@ class Cube:
         self.grid_x = path[0].x
         self.grid_y = path[0].y
         
+        # Visual position (for smooth animation)
+        self.visual_x = self.grid_x * CELL_SIZE + 5
+        self.visual_y = self.grid_y * CELL_SIZE + 5
+        
         # Destination
         self.destination = (path[-1].x, path[-1].y)
         
-        # Create rect for rendering
-        self.rect = pygame.Rect(self.grid_x * CELL_SIZE + 5, self.grid_y * CELL_SIZE + 5, 
+        # Create rect for rendering (now based on visual position)
+        self.rect = pygame.Rect(self.visual_x, self.visual_y, 
                             CELL_SIZE - 10, CELL_SIZE - 10)
+        
+        # Movement animation
+        self.is_moving = False
+        self.move_progress = 0.0
+        self.move_speed = 0.1  # Adjust for faster/slower animation
+        self.next_grid_x = self.grid_x
+        self.next_grid_y = self.grid_y
+        
+        # Direction indicator properties
+        self.direction = None  # Will be 'up', 'down', 'left', or 'right'
         
         # Use a color based on cube_id
         self.color = CUBE_COLORS[cube_id % len(CUBE_COLORS)]
         self.hover = False
-        self.waiting = False  # We keep this but don't use it for movement logic
-        self.overlapping = False  # Add this to track cell overlaps
-        
+        self.waiting = False
+        self.overlapping = False
+    
+    def update(self) -> None:
+        """
+        Update the cube's visual position for smooth movement.
+        Should be called every frame.
+        """
+        if self.is_moving:
+            # Update progress
+            self.move_progress += self.move_speed
+            
+            if self.move_progress >= 1.0:
+                # Movement complete
+                self.is_moving = False
+                self.move_progress = 0.0
+                self.grid_x = self.next_grid_x
+                self.grid_y = self.next_grid_y
+                self.visual_x = self.grid_x * CELL_SIZE + 5
+                self.visual_y = self.grid_y * CELL_SIZE + 5
+            else:
+                # Interpolate position
+                start_x = self.grid_x * CELL_SIZE + 5
+                start_y = self.grid_y * CELL_SIZE + 5
+                end_x = self.next_grid_x * CELL_SIZE + 5
+                end_y = self.next_grid_y * CELL_SIZE + 5
+                
+                self.visual_x = start_x + (end_x - start_x) * self.move_progress
+                self.visual_y = start_y + (end_y - start_y) * self.move_progress
+            
+            # Update rect position
+            self.rect.x = self.visual_x
+            self.rect.y = self.visual_y
+    
     def move(self) -> None:
         """
-        Move the cube to the next position in its path.
-        The API has already ensured paths are collision-free.
+        Start moving the cube to the next position in its path.
         """
-        if self.current_step < len(self.path) - 1:
+        if not self.is_moving and self.current_step < len(self.path) - 1:
             self.current_step += 1
             next_coord = self.path[self.current_step]
-            self.grid_x = next_coord.x
-            self.grid_y = next_coord.y
-            self.rect.x = self.grid_x * CELL_SIZE + 5
-            self.rect.y = self.grid_y * CELL_SIZE + 5
+            
+            # Set next grid position
+            self.next_grid_x = next_coord.x
+            self.next_grid_y = next_coord.y
+            
+            # Set direction indicator
+            if self.next_grid_x > self.grid_x:
+                self.direction = 'right'
+            elif self.next_grid_x < self.grid_x:
+                self.direction = 'left'
+            elif self.next_grid_y > self.grid_y:
+                self.direction = 'down'
+            elif self.next_grid_y < self.grid_y:
+                self.direction = 'up'
+            
+            # Start movement animation
+            self.is_moving = True
+            self.move_progress = 0.0
 
     def is_reached(self) -> bool:
         """Check if the cube has reached its destination."""
-        return (self.grid_x, self.grid_y) == self.destination
+        return (self.grid_x, self.grid_y) == self.destination and not self.is_moving
 
     def distance_to_destination(self) -> int:
         """Compute Manhattan distance to destination."""
@@ -51,7 +108,7 @@ class Cube:
 
     def draw(self, screen: pygame.Surface) -> None:
         """
-        Draw the cube on the given pygame surface, including visual effects.
+        Draw the cube on the given pygame surface, including direction indicators.
         """
         # Shadow
         shadow_surface = pygame.Surface((self.rect.width, self.rect.height), pygame.SRCALPHA)
@@ -60,7 +117,6 @@ class Cube:
 
         # Determine base color
         if self.overlapping:
-            # Red color for overlapping cubes
             base_color = OVERLAP_COLOR
         elif self.is_reached():
             base_color = REACHED_COLOR
@@ -71,6 +127,40 @@ class Cube:
 
         # Draw cube
         pygame.draw.rect(screen, base_color, self.rect, border_radius=10)
+
+        # Draw direction indicator if cube is moving
+        # if self.is_moving and self.direction:
+        #     indicator_color = (255, 255, 255)  # White indicator
+        #     arrow_size = 6
+        #     center_x = self.rect.centerx
+        #     center_y = self.rect.centery
+            
+        #     if self.direction == 'right':
+        #         points = [
+        #             (center_x + arrow_size, center_y),
+        #             (center_x, center_y - arrow_size),
+        #             (center_x, center_y + arrow_size)
+        #         ]
+        #     elif self.direction == 'left':
+        #         points = [
+        #             (center_x - arrow_size, center_y),
+        #             (center_x, center_y - arrow_size),
+        #             (center_x, center_y + arrow_size)
+        #         ]
+        #     elif self.direction == 'down':
+        #         points = [
+        #             (center_x, center_y + arrow_size),
+        #             (center_x - arrow_size, center_y),
+        #             (center_x + arrow_size, center_y)
+        #         ]
+        #     elif self.direction == 'up':
+        #         points = [
+        #             (center_x, center_y - arrow_size),
+        #             (center_x - arrow_size, center_y),
+        #             (center_x + arrow_size, center_y)
+        #         ]
+                
+        #     pygame.draw.polygon(screen, indicator_color, points)
 
         # Draw cube ID for identification
         font = pygame.font.SysFont('Arial', 18)
