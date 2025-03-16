@@ -1,6 +1,6 @@
 import pygame
 from typing import List, Tuple, Dict
-from config import CUBE_COLORS, CELL_SIZE, SHADOW_COLOR, CUBE_HOVER_COLOR
+from config import CUBE_COLORS, CELL_SIZE, SHADOW_COLOR, CUBE_HOVER_COLOR, REACHED_COLOR, OVERLAP_COLOR
 from request import Coordinate
 
 
@@ -61,9 +61,9 @@ class Cube:
         # Determine base color
         if self.overlapping:
             # Red color for overlapping cubes
-            base_color = (255, 0, 0)  # Bright red to indicate collision
+            base_color = OVERLAP_COLOR
         elif self.is_reached():
-            base_color = tuple(min(c + 50, 255) for c in self.color)  # Brighter color if reached
+            base_color = REACHED_COLOR
         elif self.hover:
             base_color = CUBE_HOVER_COLOR
         else:

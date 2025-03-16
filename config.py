@@ -9,6 +9,8 @@ MOVE_INTERVAL = 1000  # Time between moves in milliseconds (1 second)
 # Dark theme colors
 BACKGROUND = (18, 18, 18)
 GRID_LINES = (45, 45, 45)
+OVERLAP_COLOR = (255, 0, 0)
+REACHED_COLOR = (0, 210, 190)
 CUBE_COLORS = [
     (0, 184, 148),     # Turquoise
     #We can add more colors if we want, and they will be chosen based on %
