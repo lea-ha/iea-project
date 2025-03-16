@@ -20,7 +20,7 @@ class Game:
         
         # Add pause functionality
         self.paused = False
-        self.pause_button = pygame.Rect(WIDTH - 110, 10, 100, 30)
+        self.pause_button = pygame.Rect(WIDTH - 50, 10, 40, 40)
         self.font = pygame.font.SysFont('Arial', 16)
 
     def run(self) -> None:
@@ -129,17 +129,47 @@ class Game:
         
     def draw_pause_button(self) -> None:
         """
-        Draw the pause/play button.
+        Draw the pause/play button with appropriate icon and color.
         """
-        # Draw button background
-        button_color = (100, 100, 100)
+        # Button background - red when paused, green when running
+        button_color = (50, 200, 50) if self.paused else (220, 50, 50) 
         pygame.draw.rect(self.screen, button_color, self.pause_button, border_radius=5)
         
-        # Draw button text
-        button_text = "Resume" if self.paused else "Pause"
-        text_surf = self.font.render(button_text, True, (255, 255, 255))
-        text_rect = text_surf.get_rect(center=self.pause_button.center)
-        self.screen.blit(text_surf, text_rect)
+        # Draw icon based on state
+        icon_color = (255, 255, 255)  # White icon
+        if self.paused:
+            # Draw play triangle icon (pointing right)
+            play_icon_points = [
+                (self.pause_button.left + 12, self.pause_button.top + 10),
+                (self.pause_button.left + 12, self.pause_button.bottom - 10),
+                (self.pause_button.right - 10, self.pause_button.centery)
+            ]
+            pygame.draw.polygon(self.screen, icon_color, play_icon_points)
+        else:
+            # Draw pause icon (two vertical bars)
+            bar_width = 6
+            bar_height = 20
+            gap = 4
+            bar_y = self.pause_button.centery - bar_height // 2
+            
+            # Left bar
+            left_bar = pygame.Rect(
+                self.pause_button.centerx - bar_width - gap//2,
+                bar_y,
+                bar_width, 
+                bar_height
+            )
+            
+            # Right bar
+            right_bar = pygame.Rect(
+                self.pause_button.centerx + gap//2,
+                bar_y,
+                bar_width, 
+                bar_height
+            )
+            
+            pygame.draw.rect(self.screen, icon_color, left_bar)
+            pygame.draw.rect(self.screen, icon_color, right_bar)
 
     # In Game class, add a method to check for overlaps
     def check_overlaps(self):
