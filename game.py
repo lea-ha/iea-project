@@ -38,28 +38,21 @@ class Game:
                 if event.type == pygame.QUIT:
                     running = False
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    # Check if pause button was clicked
                     if self.pause_button.collidepoint(event.pos):
-                        # Toggle pause state
                         if not self.paused:
-                            # Entering pause state - record time
                             self.pause_start_time = current_time
                         else:
-                            # Exiting pause state - adjust start_time to account for paused duration
                             pause_duration = current_time - self.pause_start_time
                             self.start_time += pause_duration
                         
                         self.paused = not self.paused
                         
-            # Update elapsed time if not paused
             if not self.paused:
                 self.elapsed_time = current_time - self.start_time
                 
-                # Update all cubes for animation
                 for cube in self.cubes:
                     cube.update()
-                    
-                # Only move cubes when not paused and previous movement is complete
+
                 if current_time - self.last_move_time >= MOVE_INTERVAL:
                     all_cubes_stable = all(not cube.is_moving for cube in self.cubes)
                     if all_cubes_stable:
@@ -83,7 +76,7 @@ class Game:
         for cube in self.cubes:
             cube.draw(self.screen)
         self.draw_stats()
-        self.draw_timer()  # Draw timer after stats
+        self.draw_timer()  
         self.draw_pause_button()
 
     def create_cubes(self) -> List[Cube]:
@@ -156,14 +149,12 @@ class Game:
         """
         Draw the pause/play button with appropriate icon and color.
         """
-        # Button background - red when paused, green when running
         button_color = (220, 50, 50) if self.paused else (50, 200, 50) 
         pygame.draw.rect(self.screen, button_color, self.pause_button, border_radius=5)
         
-        # Draw icon based on state
-        icon_color = (255, 255, 255)  # White icon
+        icon_color = (255, 255, 255)  
         if not self.paused:
-            # play triangle icon (pointing right)
+            # play triangle icon
             play_icon_points = [
                 (self.pause_button.left + 12, self.pause_button.top + 10),
                 (self.pause_button.left + 12, self.pause_button.bottom - 10),
@@ -171,13 +162,12 @@ class Game:
             ]
             pygame.draw.polygon(self.screen, icon_color, play_icon_points)
         else:
-            # Draw pause icon (two vertical bars)
+            # pause bars
             bar_width = 6
             bar_height = 20
             gap = 4
             bar_y = self.pause_button.centery - bar_height // 2
             
-            # Pause button (left)
             left_bar = pygame.Rect(
                 self.pause_button.centerx - bar_width - gap//2,
                 bar_y,
@@ -185,7 +175,6 @@ class Game:
                 bar_height
             )
             
-            # Pause button (right)
             right_bar = pygame.Rect(
                 self.pause_button.centerx + gap//2,
                 bar_y,
@@ -200,26 +189,20 @@ class Game:
         """
         Draw the timer showing elapsed time below the stats.
         """
-        # Convert milliseconds to a readable format
         seconds = self.elapsed_time // 1000
         minutes = seconds // 60
         seconds %= 60
         
-        # Format as MM:SS
         timer_text = f"Time: {minutes:02d}:{seconds:02d}"
         
-        # Add pause indicator if paused
         if self.paused:
             timer_text += " (PAUSED)"
             
-        # Draw timer with a slight shadow for better visibility
         font = pygame.font.SysFont('Arial', 16)
         
-        # Shadow
         shadow_surf = font.render(timer_text, True, (0, 0, 0))
         self.screen.blit(shadow_surf, (11, 31))
         
-        # Actual text
         timer_surf = font.render(timer_text, True, (255, 255, 255))
         self.screen.blit(timer_surf, (10, 30))
 

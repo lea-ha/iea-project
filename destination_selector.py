@@ -50,11 +50,9 @@ class DestinationSelector:
         """
         grid_x, grid_y = pos[0] // CELL_SIZE, pos[1] // CELL_SIZE
         
-        # Check if clicked on start button
         if self.start_button_rect.collidepoint(pos):
             return len(self.selected_destinations) > 0
         
-        # Check if click is within grid bounds
         if 0 <= grid_x < self.grid_width and 0 <= grid_y < self.grid_height:
             grid_pos = (grid_x, grid_y)
             
@@ -89,7 +87,6 @@ class DestinationSelector:
             self.clock.tick(60)
             
         # Convert to format needed for API
-        # Use only as many origins as we have destinations
         used_origins = self.fixed_origins[:len(self.selected_destinations)]
         origins = [[x, y] for x, y in used_origins]
         destinations = [[x, y] for x, y in self.selected_destinations]
@@ -118,39 +115,32 @@ class DestinationSelector:
         """
         Draw the selection interface elements.
         """
-        # Draw fixed origins
         for x, y in self.fixed_origins:
             origin_rect = pygame.Rect(x * CELL_SIZE + 5, y * CELL_SIZE + 5, CELL_SIZE - 10, CELL_SIZE - 10)
             pygame.draw.rect(self.screen, (0, 200, 0), origin_rect, border_radius=10)
         
-        # Draw selected destinations
         for i, (x, y) in enumerate(self.selected_destinations):
             dest_rect = pygame.Rect(x * CELL_SIZE + 5, y * CELL_SIZE + 5, CELL_SIZE - 10, CELL_SIZE - 10)
             pygame.draw.rect(self.screen, (200, 0, 0), dest_rect, border_radius=10)
             
-            # Draw destination number
             font = pygame.font.SysFont('Arial', 18)
             id_text = font.render(str(i + 1), True, (255, 255, 255))
             text_rect = id_text.get_rect(center=(x * CELL_SIZE + CELL_SIZE // 2, y * CELL_SIZE + CELL_SIZE // 2))
             self.screen.blit(id_text, text_rect)
         
-        # Draw start button
         pygame.draw.rect(self.screen, (100, 200, 100), self.start_button_rect, border_radius=5)
         
-        # Button text
         font = pygame.font.SysFont('Arial', 18)
         start_text = "Start Simulation"
         start_surf = font.render(start_text, True, (255, 255, 255))
         start_rect = start_surf.get_rect(center=self.start_button_rect.center)
         self.screen.blit(start_surf, start_rect)
         
-        # Status text
         status_font = pygame.font.SysFont('Arial', 16)
         status = f"Select destinations: {len(self.selected_destinations)}/{self.max_destinations}"
         status_surf = status_font.render(status, True, (255, 255, 255))
         self.screen.blit(status_surf, (10, 10))
         
-        # Instructions
         instruction = "Click to select/deselect destinations."
         inst_surf = status_font.render(instruction, True, (255, 255, 255))
         self.screen.blit(inst_surf, (10, 30))

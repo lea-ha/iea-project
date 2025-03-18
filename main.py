@@ -1,6 +1,7 @@
 from game import Game
 from request import call_cbs_api
 from destination_selector import DestinationSelector
+import time
 
 if __name__ == "__main__":
     selector = DestinationSelector()
@@ -37,15 +38,16 @@ if __name__ == "__main__":
         "destinations": destinations
     }
     
-    # Call the API to get agent paths
+    start_time = time.time()
     agent_paths = call_cbs_api(payload)
+    end_time = time.time()
+    print(f"Time taken to get agent paths: {end_time - start_time} seconds")
     
-    # Debug information
+    # Debug info
     for agent in agent_paths:
         print(f"Agent {agent.agent_id}:")
         for coord in agent.path:
             print(f"  Coordinate(x={coord.x}, y={coord.y})")
     
-    # Run the game with the generated paths
     game = Game(agent_paths)
     game.run()

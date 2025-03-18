@@ -4,7 +4,8 @@ GRID_ROWS = 10
 CELL_SIZE = 60
 WIDTH, HEIGHT = GRID_COLS * CELL_SIZE, GRID_ROWS * CELL_SIZE
 CUBE_COUNT = 20
-MOVE_INTERVAL = 1000  # Time between moves in milliseconds (1 second)
+MOVE_INTERVAL = 30  # Time between moves in milliseconds 
+MOVE_SPEED = 0.1  # Speed of cube movement animation
 
 # Dark theme colors
 BACKGROUND = (18, 18, 18)
