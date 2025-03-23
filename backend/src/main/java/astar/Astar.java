@@ -9,7 +9,6 @@ public class Astar {
 
     public static List<Coordinate> aStar(
             int[][] grid, Agent agent, Map<SubNode, Integer> reservations, int maxPathLength) {
-        int maxIterations = 1000;
         Coordinate start = agent.start();
         Coordinate goal = agent.goal();
 
@@ -23,12 +22,13 @@ public class Astar {
         Set<SubNode> visited = new HashSet<>();
 
         while (!openSet.isEmpty()) {
-            if (maxIterations <= 0) {
-                return List.of();
-            } else {
-                maxIterations--;
-            }
+
             Node current = openSet.poll();
+
+            // EARLY PRUNING
+            if (current.g > maxPathLength) {
+                continue;
+            }
 
             if (visited.contains(SubNode.of(current.coordinate, current.g))) {
                 continue;
@@ -79,21 +79,9 @@ public class Astar {
         return path;
     }
 
-
-    private static int heuristic(Coordinate start, Coordinate goal) {
+    public static int heuristic(Coordinate start, Coordinate goal) {
         // Manhattan distance
         return Math.abs(start.x() - goal.x()) + Math.abs(start.y() - goal.y());
-    }
-
-    private static List<Coordinate> padPath(List<Coordinate> path, int maxPathLength) {
-        ArrayList<Coordinate> paddedPath = new ArrayList<>(path);
-        if (path.size() >= maxPathLength) {
-            return path;
-        }
-        for (int i = maxPathLength-path.size(); i > 0; i--) {
-            paddedPath.add(path.getLast());
-        }
-        return paddedPath;
     }
 
 }

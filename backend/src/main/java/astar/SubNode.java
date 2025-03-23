@@ -5,8 +5,8 @@ import tools.Coordinate;
 import java.util.Objects;
 
 public class SubNode {
-    Coordinate coordinate;
-    int g;
+    public Coordinate coordinate;
+    public int g;
 
     public SubNode(Coordinate coordinate, int g) {
         this.coordinate = coordinate;

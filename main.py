@@ -3,7 +3,7 @@ from request import call_cbs_api
 from destination_selector import DestinationSelector
 import time
 
-if __name__ == "__main__":
+def main():
     selector = DestinationSelector()
     origins, destinations = selector.run()
     
@@ -40,14 +40,21 @@ if __name__ == "__main__":
     
     start_time = time.time()
     agent_paths = call_cbs_api(payload)
-    end_time = time.time()
-    print(f"Time taken to get agent paths: {end_time - start_time} seconds")
+    if agent_paths is None:
+        print("Could not find path")
+        main()
+    else:
+        end_time = time.time()
+        print(f"Time taken to get agent paths: {end_time - start_time} seconds")
     
     # Debug info
-    for agent in agent_paths:
-        print(f"Agent {agent.agent_id}:")
-        for coord in agent.path:
-            print(f"  Coordinate(x={coord.x}, y={coord.y})")
+        for agent in agent_paths:
+            print(f"Agent {agent.agent_id}:")
+            for coord in agent.path:
+                print(f"  Coordinate(x={coord.x}, y={coord.y})")
     
-    game = Game(agent_paths)
-    game.run()
+        game = Game(agent_paths)
+        game.run()
+
+if __name__ == "__main__":
+    main()
