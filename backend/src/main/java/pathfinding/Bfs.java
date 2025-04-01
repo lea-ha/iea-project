@@ -5,6 +5,8 @@ import tools.Coordinate;
 
 import java.util.*;
 
+import static pathfinding.Astar.createMorphingSet;
+
 public class Bfs extends PathFinder {
 
     @Override
@@ -41,9 +43,13 @@ public class Bfs extends PathFinder {
             List<Coordinate> neighbors = getNeighbors(current.coordinate, grid);
             for (Coordinate neighbor : neighbors) {
                 int t = current.g + 1;
+                Set<SubNode> morphingSet = createMorphingSet(reservations, t, grid);
                 SubNode neighborNode = SubNode.of(neighbor, t);
                 if (reservations.containsKey(neighborNode) && !reservations.get(neighborNode).equals(agent.id())) {
                     continue; //reserved by another agent
+                }
+                if (!morphingSet.contains(neighborNode)) {
+                    continue; //not a morphic position
                 }
 
                 List<Node> newPath = new ArrayList<>(current.path);
