@@ -1,5 +1,6 @@
 package cbs;
 
+import pathfinding.PathFinder;
 import tools.Agent;
 import tools.Coordinate;
 
@@ -10,9 +11,11 @@ import java.util.Map;
 public class Searcher {
 
     public static Map<Integer, List<Coordinate>> boostedCbs(int[][] grid, List<Agent> agents) {
-
-        Map<Integer, List<Coordinate>> solution = CBS.cbs(grid, agents, new HashMap<>());
-        return solution;
+        return boostedCbs(grid, agents, "astar");  // A* is default
     }
 
+    public static Map<Integer, List<Coordinate>> boostedCbs(int[][] grid, List<Agent> agents, String algorithm) {
+        Map<Integer, List<Coordinate>> solution = CBS.cbs(grid, agents, new HashMap<>(), algorithm);
+        return solution;
+    }
 }

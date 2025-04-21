@@ -1,12 +1,13 @@
 package cbs;
 
-import astar.Astar;
-import astar.SubNode;
+import pathfinding.Astar;
+import pathfinding.PathFinder;
+import pathfinding.SubNode;
 import tools.*;
 
 import java.util.*;
 
-import static astar.Astar.heuristic;
+import static pathfinding.Astar.heuristic;
 
 public class CBS {
 
@@ -17,6 +18,14 @@ public class CBS {
 
     public static Map<Integer, List<Coordinate>> cbs(
             int[][] grid, List<Agent> agents, HashMap<SubNode, Integer> fallbackReservations) {
+        return cbs(grid, agents, fallbackReservations, "astar");  // Default to A*
+    }
+
+    public static Map<Integer, List<Coordinate>> cbs(
+            int[][] grid, List<Agent> agents, HashMap<SubNode, Integer> fallbackReservations, String algorithm) {
+
+        // Get the appropriate pathfinder based on the algorithm parameter
+        PathFinder pathFinder = PathFinder.getPathFinder(algorithm);
 
         // Create a map of agent priorities (lower number = higher priority) and find max path length
         Map<Integer, Integer> priorities = new HashMap<>();
@@ -27,7 +36,7 @@ public class CBS {
             maxPathLength = Math.max(maxPathLength, distance);
         }
         System.out.println("Found solution with " + maxPathLength + " steps");
-        // Initial planning: plan each agent’s path ignoring others (but reserving its cells)
+        // Initial planning: plan each agent's path ignoring others (but reserving its cells)
         Map<SubNode, Integer> reservations = new HashMap<>(fallbackReservations);
         Map<Integer, List<Coordinate>> paths = new HashMap<>();
 
@@ -35,14 +44,14 @@ public class CBS {
         agents.sort(Comparator.comparingInt(Agent::getPriority));
 
         for (Agent agent : agents) {
-            List<Coordinate> path = Astar.aStar(grid, agent, reservations, maxPathLength);
+            List<Coordinate> path = pathFinder.findPath(grid, agent, reservations, maxPathLength);
             if (path == null) {
                 System.out.println("Agent " + agent.id() + " failed to find path!\nFallback mechanism initiated");
                 // Reserve this spot for this agent in the future
                 SubNode fallbackReservation = computeFallbackReservation(agent, reservations);
                 fallbackReservations.put(fallbackReservation, agent.id());
                 // Relaunch CBS with the updated fallbackReservation
-                return cbs(grid, agents, fallbackReservations);
+                return cbs(grid, agents, fallbackReservations, algorithm);
             }
             // Reserve the path cells (other agents must avoid these)
             for (int t = 0; t < path.size(); t++) {
@@ -78,17 +87,17 @@ public class CBS {
             newConstraints.add(constraint);
 
             // Re-plan the lower-priority agent with the new constraint:
-            // Create new reservations ignoring the lower-priority agent’s current path.
+            // Create new reservations ignoring the lower-priority agent's current path.
             Map<SubNode, Integer> newReservations = createReservations(node.agentIdToPath(), agentLow);
             Agent agentLowObj = findAgentById(agents, agentLow);
             assert agentLowObj != null;
-            List<Coordinate> constrainedPath = Astar.aStar(grid, agentLowObj, newReservations, maxPathLength);
+            List<Coordinate> constrainedPath = pathFinder.findPath(grid, agentLowObj, newReservations, maxPathLength);
             if (constrainedPath == null) {
                 // No valid path found under this constraint; skip this branch.
                 continue;
             }
 
-            // Copy paths and update the lower-priority agent’s path.
+            // Copy paths and update the lower-priority agent's path.
             Map<Integer, List<Coordinate>> newPaths = new HashMap<>(node.agentIdToPath());
             newPaths.put(agentLow, constrainedPath);
 

@@ -1,4 +1,4 @@
-package astar;
+package pathfinding;
 
 import tools.Coordinate;
 

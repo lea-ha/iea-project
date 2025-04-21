@@ -16,10 +16,25 @@ import java.util.Map;
 @RestController
 public class Controller {
 
+    //    @PostMapping("/cbs")
+//    public ResponseEntity<Map<Integer, List<Coordinate>>> cbs(@RequestBody CbsRequest cbsRequest) {
+//        List<Agent> agents = HungarianSolver.getHungarianAgents(cbsRequest.origins(), cbsRequest.destinations());
+//        Map<Integer, List<Coordinate>> cbs = Searcher.boostedCbs(cbsRequest.grid(), agents);
+//        if (cbs == null || cbs.isEmpty()) {
+//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        }
+//        return ResponseEntity.ok(cbs);
+//    }
     @PostMapping("/cbs")
     public ResponseEntity<Map<Integer, List<Coordinate>>> cbs(@RequestBody CbsRequest cbsRequest) {
         List<Agent> agents = HungarianSolver.getHungarianAgents(cbsRequest.origins(), cbsRequest.destinations());
-        Map<Integer, List<Coordinate>> cbs = Searcher.boostedCbs(cbsRequest.grid(), agents);
+
+        Map<Integer, List<Coordinate>> cbs = Searcher.boostedCbs(
+                cbsRequest.grid(),
+                agents,
+                cbsRequest.algorithm() // "astar" or "bfs"
+        );
+
         if (cbs == null || cbs.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

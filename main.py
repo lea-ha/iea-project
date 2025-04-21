@@ -35,7 +35,8 @@ def main():
     payload = {
         "grid": [[0 for _ in range(10)] for _ in range(10)],
         "origins": origins,
-        "destinations": destinations
+        "destinations": destinations,
+        "algorithm":"astar"
     }
     
     start_time = time.time()
