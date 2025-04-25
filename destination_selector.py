@@ -1,6 +1,9 @@
 import pygame
-from typing import List, Set, Tuple
-from config import WIDTH, HEIGHT, CELL_SIZE, GRID_LINES, BACKGROUND
+from typing import List, Tuple, Set
+from algorithm_selector import AlgorithmSelector
+from config import WIDTH, HEIGHT, CELL_SIZE, BACKGROUND, GRID_LINES
+from request import Coordinate
+from time import time
 
 
 class DestinationSelector:
@@ -13,15 +16,18 @@ class DestinationSelector:
         Initialize the destination selector.
         """
         pygame.init()
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Select Destinations")
+        
+        # Accomodating the algorithm selection panel
+        extended_width = WIDTH + 200  
+        self.screen = pygame.display.set_mode((extended_width, HEIGHT))
+        pygame.display.set_caption("Path Planning Setup")
         self.clock = pygame.time.Clock()
         
-        # Grid dimensions
+        # Grid dimensions 
         self.grid_width = WIDTH // CELL_SIZE
         self.grid_height = HEIGHT // CELL_SIZE
         
-        # Fixed origins (bottom two rows)
+        # Fixed origins
         self.fixed_origins = self.generate_fixed_origins()
         
         # Selection state for destinations
@@ -31,6 +37,8 @@ class DestinationSelector:
         # Button area
         self.button_height = 40
         self.start_button_rect = pygame.Rect(WIDTH - 210, HEIGHT - self.button_height - 10, 200, self.button_height)
+        
+        self.algorithm_selector = AlgorithmSelector()
         
     def generate_fixed_origins(self) -> List[Tuple[int, int]]:
         """
@@ -48,6 +56,10 @@ class DestinationSelector:
         Handle mouse clicks during selection.
         Returns True if start button is clicked.
         """
+        # Check if this is an algorithm selection click
+        if self.algorithm_selector.handle_click(pos):
+            return False
+            
         grid_x, grid_y = pos[0] // CELL_SIZE, pos[1] // CELL_SIZE
         
         if self.start_button_rect.collidepoint(pos):
@@ -56,7 +68,7 @@ class DestinationSelector:
         if 0 <= grid_x < self.grid_width and 0 <= grid_y < self.grid_height:
             grid_pos = (grid_x, grid_y)
             
-            # Don't allow selecting the bottom two rows (origins)
+            # Don't allow selecting the bottom two rows
             if grid_y >= self.grid_height - 2:
                 return False
                 
@@ -100,6 +112,10 @@ class DestinationSelector:
         self.screen.fill(BACKGROUND)
         self.draw_grid()
         self.draw_selection()
+        
+        # Draw the algorithm selector
+        self.algorithm_selector.draw(self.screen)
+        
         pygame.display.flip()
         
     def draw_grid(self) -> None:
@@ -144,3 +160,12 @@ class DestinationSelector:
         instruction = "Click to select/deselect destinations."
         inst_surf = status_font.render(instruction, True, (255, 255, 255))
         self.screen.blit(inst_surf, (10, 30))
+        
+        # Display selected algorithm
+        # algo_text = f"Algorithm: {self.algorithm_selector.get_selected_algorithm()}"
+        # algo_surf = status_font.render(algo_text, True, (255, 255, 255))
+        # self.screen.blit(algo_surf, (10, 50))
+        
+    def get_selected_algorithm(self) -> str:
+        """Return the currently selected algorithm."""
+        return self.algorithm_selector.get_selected_algorithm()

@@ -1,11 +1,18 @@
+import pygame
+from typing import List, Tuple, Set
+from algorithm_selector import AlgorithmSelector
+from config import WIDTH, HEIGHT, CELL_SIZE, BACKGROUND, GRID_LINES
+from request import Coordinate, AgentPath, call_cbs_api
 from game import Game
-from request import call_cbs_api
 from destination_selector import DestinationSelector
 import time
 
 def main():
     selector = DestinationSelector()
     origins, destinations = selector.run()
+    
+    # Get the selected algorithm
+    selected_algorithm = selector.get_selected_algorithm()
     
     if not destinations:
         print("No destinations selected, using defaults.")
@@ -31,12 +38,15 @@ def main():
         for i, dest in enumerate(destinations):
             print(f"  Destination {i+1}: [{dest[0]}, {dest[1]}]")
     
+    # Log the selected algorithm
+    print(f"Using algorithm: {selected_algorithm}")
+    
     # Prepare payload for the API
     payload = {
         "grid": [[0 for _ in range(10)] for _ in range(10)],
         "origins": origins,
         "destinations": destinations,
-        "algorithm":"astar"
+        "algorithm": selected_algorithm  # Include the selected algorithm in the payload
     }
     
     start_time = time.time()
@@ -48,7 +58,7 @@ def main():
         end_time = time.time()
         print(f"Time taken to get agent paths: {end_time - start_time} seconds")
     
-    # Debug info
+        # Debug info
         for agent in agent_paths:
             print(f"Agent {agent.agent_id}:")
             for coord in agent.path:
