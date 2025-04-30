@@ -34,5 +34,6 @@ def call_cbs_api(payload):
         agent_paths = parse_agent_paths(response_json)
         return agent_paths
     else:
-        print("Error")
+        print(f"Error: {response.status_code}")
+        print(response.text)
         return None

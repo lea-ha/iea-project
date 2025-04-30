@@ -6,12 +6,15 @@ from request import Coordinate, AgentPath
 
 
 class Game:
-    def __init__(self, agent_paths: List[AgentPath]) -> None:
+    def __init__(self, agent_paths: List[AgentPath], obstacles: List[List[int]]) -> None:
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Shapeshifter")
         self.clock = pygame.time.Clock()
         self.agent_paths = agent_paths
+        
+        # Store obstacles as (x, y) tuples for easier access
+        self.obstacles = set((obs[0], obs[1]) for obs in obstacles)
 
         # Create cubes
         self.cubes = [Cube(path.agent_id, path.path, {}) for path in agent_paths]
@@ -70,14 +73,30 @@ class Game:
         pygame.quit()
 
     def draw(self) -> None:
-        """Draw the grid, cubes, and labels."""
+        """Draw the grid, obstacles, cubes, and labels."""
         self.draw_grid()
+        self.draw_obstacles()  # Add this new method call
         self.draw_destinations()
         for cube in self.cubes:
             cube.draw(self.screen)
         self.draw_stats()
         self.draw_timer()  
         self.draw_pause_button()
+    
+    def draw_obstacles(self) -> None:
+        """Draw the obstacles on the grid."""
+        for x, y in self.obstacles:
+            obstacle_rect = pygame.Rect(x * CELL_SIZE + 2, y * CELL_SIZE + 2, 
+                                      CELL_SIZE - 4, CELL_SIZE - 4)
+            pygame.draw.rect(self.screen, (80, 80, 80), obstacle_rect)
+            
+            # Add a cross pattern to make obstacles more visually distinct
+            pygame.draw.line(self.screen, (40, 40, 40), 
+                          (x * CELL_SIZE + 2, y * CELL_SIZE + 2),
+                          (x * CELL_SIZE + CELL_SIZE - 4, y * CELL_SIZE + CELL_SIZE - 4), 3)
+            pygame.draw.line(self.screen, (40, 40, 40), 
+                          (x * CELL_SIZE + CELL_SIZE - 4, y * CELL_SIZE + 2),
+                          (x * CELL_SIZE + 2, y * CELL_SIZE + CELL_SIZE - 4), 3)
 
     def create_cubes(self) -> List[Cube]:
         """

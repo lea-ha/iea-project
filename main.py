@@ -9,7 +9,7 @@ import time
 
 def main():
     selector = DestinationSelector()
-    origins, destinations = selector.run()
+    origins, destinations, obstacles = selector.run()
     
     # Get the selected algorithm
     selected_algorithm = selector.get_selected_algorithm()
@@ -33,20 +33,38 @@ def main():
             [2, 8], [6, 8],
             [3, 9], [4, 9]
         ]
+        obstacles = []  # Default empty obstacles
     else:
         print(f"Selected {len(destinations)} destinations:")
         for i, dest in enumerate(destinations):
             print(f"  Destination {i+1}: [{dest[0]}, {dest[1]}]")
+        
+        if obstacles:
+            print(f"Placed {len(obstacles)} obstacles:")
+            for i, obs in enumerate(obstacles):
+                print(f"  Obstacle {i+1}: [{obs[0]}, {obs[1]}]")
     
     # Log the selected algorithm
     print(f"Using algorithm: {selected_algorithm}")
     
+    # Create grid with obstacles marked
+    grid = [[0 for _ in range(10)] for _ in range(10)]
+    for obs in obstacles:
+        x, y = obs
+        if 0 <= x < 10 and 0 <= y < 10:  # Ensure obstacles are within grid bounds
+            grid[y][x] = 1  # Mark obstacle cells with 1
+    
+    obstacles_set = set(obstacles)
+
+# # Generate all free positions
+# free_cells = [(x, y) for y in range(10) for x in range(10) if (x, y) not in obstacles_set]
+    
     # Prepare payload for the API
     payload = {
-        "grid": [[0 for _ in range(10)] for _ in range(10)],
+        "grid": grid,  # Updated grid with obstacles
         "origins": origins,
         "destinations": destinations,
-        "algorithm": selected_algorithm  # Include the selected algorithm in the payload
+        "algorithm": selected_algorithm  
     }
     
     start_time = time.time()
@@ -64,7 +82,8 @@ def main():
             for coord in agent.path:
                 print(f"  Coordinate(x={coord.x}, y={coord.y})")
     
-        game = Game(agent_paths)
+        # Pass obstacles to the Game constructor
+        game = Game(agent_paths, obstacles)
         game.run()
 
 if __name__ == "__main__":
