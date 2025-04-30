@@ -54,4 +54,8 @@ public class Bfs extends PathFinder {
         return null; // No path found
     }
 
+    @Override
+    public List<Coordinate> findOptimalPath(int[][] grid, Agent agent, Map<SubNode, Integer> reservations, int maxPathLength) {
+        return List.of();
+    }
 }

@@ -9,6 +9,12 @@ import java.util.Map;
 
 public abstract class PathFinder {
 
+    public abstract List<Coordinate> findOptimalPath(
+            int[][] grid,
+            Agent agent,
+            Map<SubNode, Integer> reservations,
+            int maxPathLength);
+
     public abstract List<Coordinate> findPath(
             int[][] grid,
             Agent agent,
@@ -32,7 +38,7 @@ public abstract class PathFinder {
             int nx = currentCoordinate.x() + direction[0];
             int ny = currentCoordinate.y() + direction[1];
 
-            if (nx >= 0 && nx < grid.length && ny >= 0 && ny < grid[0].length) {
+            if (nx >= 0 && nx < grid.length && ny >= 0 && ny < grid[0].length && grid[ny][nx] != 1) {
                 neighbors.add(Coordinate.with(nx, ny));
             }
         }

@@ -33,7 +33,7 @@ public class CBS {
         for (Agent agent : agents) {
             priorities.put(agent.id(), agent.getPriority());
             int distance = heuristic(agent.start(), agent.goal());
-            maxPathLength = Math.max(maxPathLength, distance);
+            maxPathLength = Math.max(maxPathLength, distance) + fallbackReservations.size();
         }
         System.out.println("Found solution with " + maxPathLength + " steps");
         // Initial planning: plan each agent's path ignoring others (but reserving its cells)
@@ -44,7 +44,7 @@ public class CBS {
         agents.sort(Comparator.comparingInt(Agent::getPriority));
 
         for (Agent agent : agents) {
-            List<Coordinate> path = pathFinder.findPath(grid, agent, reservations, maxPathLength);
+            List<Coordinate> path = pathFinder.findOptimalPath(grid, agent, reservations, maxPathLength);
             if (path == null) {
                 System.out.println("Agent " + agent.id() + " failed to find path!\nFallback mechanism initiated");
                 // Reserve this spot for this agent in the future
@@ -143,14 +143,29 @@ public class CBS {
 
         SubNode latestReservationForAgent = getLatestReservationForAgent(reservations, agent);
         Coordinate latestCoordinate = latestReservationForAgent.coordinate;
+        SubNode fallbackNode = SubNode.of(latestCoordinate, latestReservationForAgent.g + 1);
 
         if (latestCoordinate.y() > agent.goal().y()) {
-            return SubNode.of(
-                    Coordinate.with(latestCoordinate.x(), latestCoordinate.y() - 1), latestReservationForAgent.g+1);
-
+            fallbackNode = SubNode.of(
+                    Coordinate.with(latestCoordinate.x(), latestCoordinate.y() - 1), latestReservationForAgent.g + 1);
         }
-        return SubNode.of(latestCoordinate, latestReservationForAgent.g+1);
 
+        else if (latestCoordinate.x() > agent.goal().x()) {
+            fallbackNode = SubNode.of(
+                    Coordinate.with(latestCoordinate.x() - 1, latestCoordinate.y()), latestReservationForAgent.g + 1);
+        }
+
+        else if (latestCoordinate.x() < agent.goal().x()) {
+            fallbackNode = SubNode.of(
+                    Coordinate.with(latestCoordinate.x() + 1, latestCoordinate.y()), latestReservationForAgent.g + 1);
+        }
+
+        if (reservations.containsKey(fallbackNode)) {
+            System.out.println("CRITICAL RESERVATION NOT RESPECTED  COMPLETE LOGIC ON FALLBACK");
+        }
+
+        System.out.println("Fallback reservation for " + agent.id() + ": " + fallbackNode.coordinate.toString() + " at " + fallbackNode.g);
+        return fallbackNode;
     }
 
     public static SubNode getLatestReservationForAgent(Map<SubNode, Integer> reservations, Agent agent) {
