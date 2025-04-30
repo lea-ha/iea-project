@@ -54,11 +54,6 @@ def main():
         if 0 <= x < 10 and 0 <= y < 10:  # Ensure obstacles are within grid bounds
             grid[y][x] = 1  # Mark obstacle cells with 1
     
-    obstacles_set = set(obstacles)
-
-# # Generate all free positions
-# free_cells = [(x, y) for y in range(10) for x in range(10) if (x, y) not in obstacles_set]
-    
     # Prepare payload for the API
     payload = {
         "grid": grid,  # Updated grid with obstacles
