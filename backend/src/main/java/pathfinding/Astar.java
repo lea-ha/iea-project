@@ -8,6 +8,18 @@ import java.util.*;
 public class Astar extends PathFinder {
 
     @Override
+    public List<Coordinate> findOptimalPath(int[][] grid, Agent agent, Map<SubNode, Integer> reservations, int maxPathLength) {
+        int startMaxPathLength = Math.min(maxPathLength/2, 10);
+        for (int i = startMaxPathLength; i < maxPathLength; i++) {
+            List<Coordinate> path = findPath(grid, agent, reservations, maxPathLength);
+            if (path != null) {
+                return path;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public List<Coordinate> findPath(
             int[][] grid, Agent agent, Map<SubNode, Integer> reservations, int maxPathLength) {
         Coordinate start = agent.start();
