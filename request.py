@@ -19,9 +19,7 @@ class AgentPath:
 def parse_agent_paths(response_data: Dict[str, List[Dict[str, int]]]) -> List[AgentPath]:
     agent_paths = []
     for agent_id_str, coord_list in response_data.items():
-        # Convert the agent ID from string to integer.
         agent_id = int(agent_id_str)
-        # Convert each coordinate dict into a Coordinate object.
         path = [Coordinate(**coord) for coord in coord_list]
         agent_paths.append(AgentPath(agent_id, path))
     return agent_paths

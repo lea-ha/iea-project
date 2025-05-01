@@ -20,7 +20,7 @@ class DestinationSelector:
         # Accomodating the algorithm selection panel
         extended_width = WIDTH + 200  
         self.screen = pygame.display.set_mode((extended_width, HEIGHT))
-        pygame.display.set_caption("Path Planning Setup")
+        pygame.display.set_caption("Shapeshifter")
         self.clock = pygame.time.Clock()
         
         # Grid dimensions 

@@ -75,18 +75,15 @@ public class CBS {
             CBSNode node = openSet.poll();
             Conflict conflict = ConflictDetector.detectConflict(node.agentIdToPath(), priorities);
 
-            // If no conflict exists, we've found a valid solution.
             if (conflict == null) {
                 System.out.println("Found solution with " + maxPathLength + " steps");
                 return node.agentIdToPath();
             }
 
             int agentLow = conflict.agentLow;
-            // Create a constraint for the lower-priority agent to avoid the conflict
             Constraint constraint = new Constraint(agentLow, conflict.coordinate, conflict.t);
             System.out.println(constraint);
 
-            // Copy constraints and add the new one.
             List<Constraint> newConstraints = new ArrayList<>(node.constraints());
             newConstraints.add(constraint);
 
@@ -94,7 +91,6 @@ public class CBS {
             // Create new reservations ignoring the lower-priority agent's current path.
             Map<SubNode, Integer> newReservations = createReservations(node.agentIdToPath(), agentLow);
 
-            // Clear and update the reservation manager
             reservationManager.clearReservations();
             reservationManager.addAllReservations(newReservations);
 
@@ -102,11 +98,9 @@ public class CBS {
             assert agentLowObj != null;
             List<Coordinate> constrainedPath = pathFinder.findPath(grid, agentLowObj, reservationManager, maxPathLength);
             if (constrainedPath == null) {
-                // No valid path found under this constraint; skip this branch.
                 continue;
             }
 
-            // Copy paths and update the lower-priority agent's path.
             Map<Integer, List<Coordinate>> newPaths = new HashMap<>(node.agentIdToPath());
             newPaths.put(agentLow, constrainedPath);
 
@@ -121,7 +115,7 @@ public class CBS {
             CBSNode newNode = new CBSNode(newPaths, newConstraints, newCost);
             openSet.add(newNode);
         }
-        return null; // Failed to find a solution.
+        return null;
     }
 
     public static Map<SubNode, Integer> createReservations(Map<Integer, List<Coordinate>> paths, Integer excludeAgent) {
