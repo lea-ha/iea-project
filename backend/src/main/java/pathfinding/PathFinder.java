@@ -1,5 +1,6 @@
 package pathfinding;
 
+import cbs.ReservationManager;
 import tools.Agent;
 import tools.Coordinate;
 
@@ -9,16 +10,10 @@ import java.util.Map;
 
 public abstract class PathFinder {
 
-    public abstract List<Coordinate> findOptimalPath(
-            int[][] grid,
-            Agent agent,
-            Map<SubNode, Integer> reservations,
-            int maxPathLength);
-
     public abstract List<Coordinate> findPath(
             int[][] grid,
             Agent agent,
-            Map<SubNode, Integer> reservations,
+            ReservationManager reservations,
             int maxPathLength
     );
 

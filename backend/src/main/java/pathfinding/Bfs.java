@@ -1,5 +1,6 @@
 package pathfinding;
 
+import cbs.ReservationManager;
 import tools.Agent;
 import tools.Coordinate;
 
@@ -9,7 +10,7 @@ public class Bfs extends PathFinder {
 
     @Override
     public List<Coordinate> findPath(
-            int[][] grid, Agent agent, Map<SubNode, Integer> reservations, int maxPathLength) {
+            int[][] grid, Agent agent, ReservationManager reservationManager, int maxPathLength) {
         Coordinate start = agent.start();
         Coordinate goal = agent.goal();
 
@@ -42,8 +43,11 @@ public class Bfs extends PathFinder {
             for (Coordinate neighbor : neighbors) {
                 int t = current.g + 1;
                 SubNode neighborNode = SubNode.of(neighbor, t);
-                if (reservations.containsKey(neighborNode) && !reservations.get(neighborNode).equals(agent.id())) {
+                if (reservationManager.getReservations().containsKey(neighborNode) && !reservationManager.getReservations().get(neighborNode).equals(agent.id())) {
                     continue; //reserved by another agent
+                }
+                if (!reservationManager.getMorphicPositions().contains(SubNode.of(neighbor, t))) {
+                    continue; //not a morphic position
                 }
 
                 List<Node> newPath = new ArrayList<>(current.path);
@@ -54,8 +58,4 @@ public class Bfs extends PathFinder {
         return null; // No path found
     }
 
-    @Override
-    public List<Coordinate> findOptimalPath(int[][] grid, Agent agent, Map<SubNode, Integer> reservations, int maxPathLength) {
-        return List.of();
-    }
 }

@@ -35,24 +35,26 @@ public class CBS {
             int distance = heuristic(agent.start(), agent.goal());
             maxDistance = Math.max(maxDistance, distance);
         }
-        int maxPathLength = maxDistance + fallbackReservations.size();
-        if (maxPathLength > 500){
-            System.out.println("No solution with less than 500 steps was found!");
+        int maxPathLength = maxDistance + (fallbackReservations.size() / 5);
+        System.out.println("Max path length: " + maxPathLength);
+        if (maxPathLength > 200){
+            System.out.println("No solution with less than 200 steps was found!");
             return null;
         }
         // Initial planning: plan each agent's path ignoring others (but reserving its cells)
-        Map<SubNode, Integer> reservations = new HashMap<>(fallbackReservations);
+        ReservationManager reservationManager = new ReservationManager(grid);
+        reservationManager.addAllReservations(initiateReservationsMap(agents, fallbackReservations));
         Map<Integer, List<Coordinate>> paths = new HashMap<>();
 
         // Plan in priority order (sort agents by priority)
         agents.sort(Comparator.comparingInt(Agent::getPriority));
 
         for (Agent agent : agents) {
-            List<Coordinate> path = pathFinder.findOptimalPath(grid, agent, reservations, maxPathLength);
+            List<Coordinate> path = pathFinder.findPath(grid, agent, reservationManager, maxPathLength);
             if (path == null) {
                 System.out.println("Agent " + agent.id() + " failed to find path!\nFallback mechanism initiated");
                 // Reserve this spot for this agent in the future
-                SubNode fallbackReservation = computeFallbackReservation(agent, reservations);
+                SubNode fallbackReservation = computeFallbackReservation(agent, reservationManager);
                 fallbackReservations.put(fallbackReservation, agent.id());
                 // Relaunch CBS with the updated fallbackReservation
                 return cbs(grid, agents, fallbackReservations, algorithm);
@@ -61,7 +63,7 @@ public class CBS {
             for (int t = 0; t < path.size(); t++) {
                 Coordinate pos = path.get(t);
                 SubNode key = SubNode.of(pos, t);
-                reservations.put(key, agent.id());
+                reservationManager.addReservation(key, agent.id());
             }
             paths.put(agent.id(), path);
         }
@@ -94,9 +96,11 @@ public class CBS {
             // Re-plan the lower-priority agent with the new constraint:
             // Create new reservations ignoring the lower-priority agent's current path.
             Map<SubNode, Integer> newReservations = createReservations(node.agentIdToPath(), agentLow);
+            reservationManager.clearReservations();
+            reservationManager.addAllReservations(newReservations);
             Agent agentLowObj = findAgentById(agents, agentLow);
             assert agentLowObj != null;
-            List<Coordinate> constrainedPath = pathFinder.findPath(grid, agentLowObj, newReservations, maxPathLength);
+            List<Coordinate> constrainedPath = pathFinder.findPath(grid, agentLowObj, reservationManager, maxPathLength);
             if (constrainedPath == null) {
                 // No valid path found under this constraint; skip this branch.
                 continue;
@@ -144,29 +148,47 @@ public class CBS {
         return null;
     }
 
-    public static SubNode computeFallbackReservation(Agent agent, Map<SubNode, Integer> reservations) {
+    public static SubNode computeFallbackReservation(Agent agent, ReservationManager reservationManager) {
 
-        SubNode latestReservationForAgent = getLatestReservationForAgent(reservations, agent);
+        SubNode latestReservationForAgent = getLatestReservationForAgent(reservationManager.getReservations(), agent);
         Coordinate latestCoordinate = latestReservationForAgent.coordinate;
         SubNode fallbackNode = SubNode.of(latestCoordinate, latestReservationForAgent.g + 1);
+        SubNode morphicNode = null;
 
-        if (latestCoordinate.y() > agent.goal().y()) {
-            fallbackNode = SubNode.of(
-                    Coordinate.with(latestCoordinate.x(), latestCoordinate.y() - 1), latestReservationForAgent.g + 1);
-        }
-
-        else if (latestCoordinate.x() > agent.goal().x()) {
-            fallbackNode = SubNode.of(
+        if (latestCoordinate.x() > agent.goal().x()) {
+            SubNode node = SubNode.of(
                     Coordinate.with(latestCoordinate.x() - 1, latestCoordinate.y()), latestReservationForAgent.g + 1);
+            if (reservationManager.getMorphicPositions().contains(node) && !reservationManager.getReservations().containsKey(node)) {
+                morphicNode = node;
+            }
         }
 
         else if (latestCoordinate.x() < agent.goal().x()) {
-            fallbackNode = SubNode.of(
+            SubNode node = SubNode.of(
                     Coordinate.with(latestCoordinate.x() + 1, latestCoordinate.y()), latestReservationForAgent.g + 1);
+            if (reservationManager.getMorphicPositions().contains(node) && !reservationManager.getReservations().containsKey(node)){
+                morphicNode = node;
+            }
         }
 
-        if (reservations.containsKey(fallbackNode)) {
-            return SubNode.of(latestCoordinate, latestReservationForAgent.g + 1);
+        else if (latestCoordinate.y() > agent.goal().y()) {
+            SubNode node = SubNode.of(
+                    Coordinate.with(latestCoordinate.x(), latestCoordinate.y() - 1), latestReservationForAgent.g + 1);
+            if (reservationManager.getMorphicPositions().contains(node) && !reservationManager.getReservations().containsKey(node)){
+                morphicNode = node;
+            }
+        }
+
+        else if (latestCoordinate.y() < agent.goal().y()) {
+            SubNode node = SubNode.of(
+                    Coordinate.with(latestCoordinate.x(), latestCoordinate.y() + 1), latestReservationForAgent.g + 1);
+            if (reservationManager.getMorphicPositions().contains(node) && !reservationManager.getReservations().containsKey(node)){
+                morphicNode = node;
+            }
+        }
+
+        if (morphicNode != null){
+            return morphicNode;
         }
 
         System.out.println("Fallback reservation for " + agent.id() + ": " + fallbackNode.coordinate.toString() + " at " + fallbackNode.g);
@@ -198,6 +220,12 @@ public class CBS {
         return latestSubNode;
     }
 
-
+    private static Map<SubNode, Integer> initiateReservationsMap(
+            List<Agent> agents,
+            Map<SubNode, Integer> fallbackReservations) {
+        HashMap<SubNode, Integer> reservations = new HashMap<>(fallbackReservations);
+        agents.forEach(agent -> reservations.put(SubNode.of(agent.start(), 0), agent.id()));
+        return reservations;
+    }
 
 }
