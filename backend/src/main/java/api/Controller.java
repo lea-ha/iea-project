@@ -32,7 +32,8 @@ public class Controller {
         Map<Integer, List<Coordinate>> cbs = Searcher.boostedCbs(
                 cbsRequest.grid(),
                 agents,
-                cbsRequest.algorithm() // "astar" or "bfs"
+                cbsRequest.algorithm(), // "astar" or "bfs"
+                cbsRequest.morphing()   // morphing enabled or disabled
         );
 
         if (cbs == null || cbs.isEmpty()) {

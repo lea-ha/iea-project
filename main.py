@@ -14,6 +14,9 @@ def main():
     # Get the selected algorithm
     selected_algorithm = selector.get_selected_algorithm()
     
+    # Get the morphing status
+    morphing_enabled = selector.is_morphing_enabled()
+    
     if not destinations:
         print("No destinations selected, using defaults.")
         origins = [
@@ -44,8 +47,9 @@ def main():
             for i, obs in enumerate(obstacles):
                 print(f"  Obstacle {i+1}: [{obs[0]}, {obs[1]}]")
     
-    # Log the selected algorithm
+    # Log the selected algorithm and morphing status
     print(f"Using algorithm: {selected_algorithm}")
+    print(f"Morphing enabled: {morphing_enabled}")
     
     # Create grid with obstacles marked
     grid = [[0 for _ in range(10)] for _ in range(10)]
@@ -59,7 +63,8 @@ def main():
         "grid": grid,  # Updated grid with obstacles
         "origins": origins,
         "destinations": destinations,
-        "algorithm": selected_algorithm  
+        "algorithm": selected_algorithm,
+        "morphing": morphing_enabled  # Add morphing parameter
     }
     
     start_time = time.time()
@@ -70,13 +75,13 @@ def main():
     else:
         end_time = time.time()
         print(f"Time taken to get agent paths: {end_time - start_time} seconds")
-    
+        
         # Debug info
         for agent in agent_paths:
             print(f"Agent {agent.agent_id}:")
             for coord in agent.path:
                 print(f"  Coordinate(x={coord.x}, y={coord.y})")
-    
+        
         # Pass obstacles to the Game constructor
         game = Game(agent_paths, obstacles)
         game.run()

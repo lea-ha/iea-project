@@ -247,3 +247,7 @@ class DestinationSelector:
     def get_selected_algorithm(self) -> str:
         """Return the currently selected algorithm."""
         return self.algorithm_selector.get_selected_algorithm()
+        
+    def is_morphing_enabled(self) -> bool:
+        """Return whether morphing is enabled from the algorithm selector."""
+        return self.algorithm_selector.is_morphing_enabled()

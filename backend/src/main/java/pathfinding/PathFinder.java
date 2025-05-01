@@ -13,7 +13,7 @@ public abstract class PathFinder {
     public abstract List<Coordinate> findPath(
             int[][] grid,
             Agent agent,
-            ReservationManager reservations,
+            ReservationManager reservationManager,
             int maxPathLength
     );
 
@@ -28,16 +28,13 @@ public abstract class PathFinder {
     public static List<Coordinate> getNeighbors(Coordinate currentCoordinate, int[][] grid) {
         int[][] directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}, {0, 0}};
         List<Coordinate> neighbors = new ArrayList<>();
-
         for (int[] direction : directions) {
             int nx = currentCoordinate.x() + direction[0];
             int ny = currentCoordinate.y() + direction[1];
-
             if (nx >= 0 && nx < grid.length && ny >= 0 && ny < grid[0].length && grid[ny][nx] != 1) {
                 neighbors.add(Coordinate.with(nx, ny));
             }
         }
-
         return neighbors;
     }
 
