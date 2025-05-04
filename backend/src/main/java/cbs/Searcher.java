@@ -21,7 +21,7 @@ public class Searcher {
     public static Map<Integer, List<Coordinate>> boostedCbs(
             int[][] grid, List<Agent> agents, String algorithm, boolean morphingEnabled) {
         Map<Integer, List<Coordinate>> solution = CBS.cbs(
-                grid, agents, new HashMap<>(), algorithm, morphingEnabled);
+                grid, agents, new HashMap<>(), algorithm, morphingEnabled, null);
         return solution;
     }
 }

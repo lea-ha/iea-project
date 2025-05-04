@@ -50,6 +50,10 @@ public class Astar extends PathFinder {
                         !reservationManager.getMorphicPositions().contains(neighborNode)) {
                     continue; // not a morphic position
                 }
+                /*if (reservationManager.isMorphingEnabled() &&
+                        !reservationManager.isMorphicToMove(neighborNode, agent)){
+                    continue; //not morphic to move
+                }*/
 
                 List<Node> newPath = new ArrayList<>(current.path);
                 newPath.add(new Node(neighbor, t, newPath));
