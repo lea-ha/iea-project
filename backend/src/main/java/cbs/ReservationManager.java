@@ -1,6 +1,7 @@
 package cbs;
 
 import pathfinding.SubNode;
+import tools.Agent;
 import tools.Coordinate;
 
 import java.util.ArrayList;
@@ -43,11 +44,47 @@ public class ReservationManager {
         }
     }
 
+    public void addAllMorphicPositions(List<SubNode> morphicPositions) {
+        this.morphicPositions.addAll(morphicPositions);
+    }
+
     private void updateMorphicPositions() {
         if (!morphicPositions.isEmpty()) {
             morphicPositions.clear();
         }
         reservations.forEach((k, v) -> morphicPositions.addAll(getMorphicNeighbors(k)));
+    }
+
+    public Map<SubNode, Integer> getReservations() {
+        return reservations;
+    }
+
+    public List<SubNode> getMorphicPositions() {
+        return morphicPositions;
+    }
+
+    public boolean isMorphicToMove(SubNode node, Agent agent) {
+        int nodeTime = node.g;
+        Coordinate nodeCoordinate = node.coordinate;
+        for (Map.Entry<SubNode, Integer> entry : reservations.entrySet()) {
+            if (entry.getKey().g != nodeTime) {
+                continue;
+            }
+            if (entry.getValue() == agent.id()) {
+                return true;
+            }
+            if (entry.getValue() != agent.id()) {
+                List<SubNode> morphicNeighbors = getMorphicNeighbors(entry.getKey());
+                if (morphicNeighbors.contains(SubNode.of(nodeCoordinate, nodeTime+1))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean isMorphingEnabled() {
+        return morphingEnabled;
     }
 
     private List<SubNode> getMorphicNeighbors(SubNode node) {
@@ -63,17 +100,5 @@ public class ReservationManager {
             }
         }
         return neighbors;
-    }
-
-    public Map<SubNode, Integer> getReservations() {
-        return reservations;
-    }
-
-    public List<SubNode> getMorphicPositions() {
-        return morphicPositions;
-    }
-
-    public boolean isMorphingEnabled() {
-        return morphingEnabled;
     }
 }
