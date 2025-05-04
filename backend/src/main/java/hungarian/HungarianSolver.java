@@ -33,7 +33,6 @@ public class HungarianSolver {
     }
 
     private static Map<Coordinate, Coordinate> applyHungarianAlgorithm(int[][] origins, int[][] destinations) {
-
         int[][] costMatrix = createCostMatrix(origins, destinations);
         Map<Coordinate, Coordinate> hungarianMap = new HashMap<>();
         HungarianAlgorithm hungarianAlgorithm = new HungarianAlgorithm(costMatrix);
@@ -55,17 +54,19 @@ public class HungarianSolver {
         return hungarianMap;
     }
 
-
     private static int manhattanDistance(int x1, int y1, int x2, int y2) {
         return Math.abs(x1 - x2) + Math.abs(y1 - y2);
     }
-
 
     private static int euclideanDistance(int x1, int y1, int x2, int y2) {
         return (int) Math.hypot(x1 - x2, y1 - y2);
     }
 
     public static List<Agent> getHungarianAgents(int[][] origins, int[][] destinations) {
+        return getHungarianAgents(origins, destinations, "y-axis");
+    }
+
+    public static List<Agent> getHungarianAgents(int[][] origins, int[][] destinations, String priorityStrategy) {
         Map<Coordinate, Coordinate> hungarianMap =
                 HungarianSolver.applyHungarianAlgorithm(origins, destinations);
 
@@ -75,7 +76,7 @@ public class HungarianSolver {
             Coordinate start = entry.getKey();
             Coordinate goal = entry.getValue();
 
-            Agent agent = new Agent(id, start, goal);
+            Agent agent = new Agent(id, start, goal, priorityStrategy);
             agents.add(agent);
 
             id++;

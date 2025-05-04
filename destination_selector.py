@@ -251,3 +251,7 @@ class DestinationSelector:
     def is_morphing_enabled(self) -> bool:
         """Return whether morphing is enabled from the algorithm selector."""
         return self.algorithm_selector.is_morphing_enabled()
+    
+    def get_selected_priority(self) -> str:
+        """Return the currently selected priority strategy."""
+        return self.algorithm_selector.get_selected_priority()

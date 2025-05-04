@@ -5,5 +5,8 @@ public record CbsRequest(
         int[][] origins,
         int[][] destinations,
         String algorithm,
-        boolean morphing
-) { }
+        boolean morphing,
+        String priorityStrategy // "y-axis" or "manhattan"
+) {
+
+}

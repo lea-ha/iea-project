@@ -6,16 +6,32 @@ public class Agent {
     Coordinate start;
     Coordinate goal;
     int priority;
+    String priorityStrategy; // "y-axis" or "manhattan"
 
     public Agent(int id, Coordinate start, Coordinate goal) {
+        this(id, start, goal, "y-axis"); // Default to y-axis priority
+    }
+
+    public Agent(int id, Coordinate start, Coordinate goal, String priorityStrategy) {
         this.id = id;
         this.start = start;
         this.goal = goal;
-        this.priority = goal.y();
+        this.priorityStrategy = priorityStrategy;
+        this.priority = calculatePriority();
+    }
+
+    private int calculatePriority() {
+        if ("manhattan".equals(priorityStrategy)) {
+            // Manhattan distance priority
+            return Math.abs(start.x() - goal.x()) + Math.abs(start.y() - goal.y());
+        } else {
+            // Default y-axis priority
+            return goal.y();
+        }
     }
 
     public int getPriority() {
-        return goal.y();
+        return priority;
     }
 
     public int id() {
@@ -30,4 +46,7 @@ public class Agent {
         return goal;
     }
 
+    public String getPriorityStrategy() {
+        return priorityStrategy;
+    }
 }

@@ -16,18 +16,18 @@ import java.util.Map;
 @RestController
 public class Controller {
 
-    //    @PostMapping("/cbs")
-//    public ResponseEntity<Map<Integer, List<Coordinate>>> cbs(@RequestBody CbsRequest cbsRequest) {
-//        List<Agent> agents = HungarianSolver.getHungarianAgents(cbsRequest.origins(), cbsRequest.destinations());
-//        Map<Integer, List<Coordinate>> cbs = Searcher.boostedCbs(cbsRequest.grid(), agents);
-//        if (cbs == null || cbs.isEmpty()) {
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//        }
-//        return ResponseEntity.ok(cbs);
-//    }
     @PostMapping("/cbs")
     public ResponseEntity<Map<Integer, List<Coordinate>>> cbs(@RequestBody CbsRequest cbsRequest) {
-        List<Agent> agents = HungarianSolver.getHungarianAgents(cbsRequest.origins(), cbsRequest.destinations());
+        // Get priority strategy from request ("y-axis" if not provided)
+        String priorityStrategy = cbsRequest.priorityStrategy() != null ?
+                cbsRequest.priorityStrategy() : "y-axis";
+
+        // Create agents with the specified priority strategy
+        List<Agent> agents = HungarianSolver.getHungarianAgents(
+                cbsRequest.origins(),
+                cbsRequest.destinations(),
+                priorityStrategy
+        );
 
         Map<Integer, List<Coordinate>> cbs = Searcher.boostedCbs(
                 cbsRequest.grid(),

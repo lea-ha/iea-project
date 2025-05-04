@@ -17,6 +17,9 @@ def main():
     # Get the morphing status
     morphing_enabled = selector.is_morphing_enabled()
     
+    # Get the priority strategy
+    priority_strategy = selector.get_selected_priority()
+    
     if not destinations:
         print("No destinations selected, using defaults.")
         origins = [
@@ -41,15 +44,16 @@ def main():
         print(f"Selected {len(destinations)} destinations:")
         for i, dest in enumerate(destinations):
             print(f"  Destination {i+1}: [{dest[0]}, {dest[1]}]")
-        
+            
         if obstacles:
             print(f"Placed {len(obstacles)} obstacles:")
             for i, obs in enumerate(obstacles):
                 print(f"  Obstacle {i+1}: [{obs[0]}, {obs[1]}]")
     
-    # Log the selected algorithm and morphing status
+    # Log the selected algorithm, morphing status, and priority strategy
     print(f"Using algorithm: {selected_algorithm}")
     print(f"Morphing enabled: {morphing_enabled}")
+    print(f"Priority strategy: {priority_strategy}")
     
     # Create grid with obstacles marked
     grid = [[0 for _ in range(10)] for _ in range(10)]
@@ -60,11 +64,12 @@ def main():
     
     # Prepare payload for the API
     payload = {
-        "grid": grid,  # Updated grid with obstacles
+        "grid": grid,  
         "origins": origins,
         "destinations": destinations,
         "algorithm": selected_algorithm,
-        "morphing": morphing_enabled  # Add morphing parameter
+        "morphing": morphing_enabled,  
+        "priorityStrategy": priority_strategy 
     }
     
     start_time = time.time()
