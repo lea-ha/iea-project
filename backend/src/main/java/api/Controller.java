@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import tools.Agent;
 import tools.Coordinate;
+import pathfinding.PathFinder;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,11 @@ public class Controller {
         // Get conflict resolution strategy ("priority" if not provided)
         String conflictResolutionStrategy = cbsRequest.conflictResolutionStrategy() != null ?
                 cbsRequest.conflictResolutionStrategy() : "priority";
+
+        // Set whether to allow diagonal movement (default to true if not specified)
+        PathFinder.setAllowDiagonals(cbsRequest.allowDiagonals());
+
+        System.out.println("Diagonal movement: " + (PathFinder.getAllowDiagonals() ? "enabled" : "disabled"));
 
         // Start timing
         long startTime = System.nanoTime();

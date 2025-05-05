@@ -20,6 +20,9 @@ class AlgorithmSelector:
         self.conflict_strategies = ["priority", "minimax"]
         self.selected_conflict = "priority"  # Default conflict resolution strategy
         
+        # Add diagonal movement toggle
+        self.diagonals_enabled = True  # Default to enabled
+        
     def draw(self, screen: pygame.Surface) -> None:
         """Draw the algorithm selection panel."""
         # Set up the right panel
@@ -129,11 +132,35 @@ class AlgorithmSelector:
         label = small_font.render(toggle_label, True, (255, 255, 255))
         label_x = toggle_x + toggle_width + 10
         screen.blit(label, (label_x, toggle_y + 4))
+
+        # Draw diagonal movement toggle
+        diag_y_pos = morph_y_pos + 30 + 40  # 40 pixels below morphing toggle
+        diag_title = font.render("Diagonal Movement", True, (255, 255, 255))
+        screen.blit(diag_title, (screen_width - panel_width + 15, diag_y_pos))
+        
+        diag_toggle_x = screen_width - panel_width + 20
+        diag_toggle_y = diag_y_pos + 30
+        
+        # Draw toggle background
+        diag_toggle_color = (100, 200, 100) if self.diagonals_enabled else (200, 100, 100)
+        diag_toggle_rect = pygame.Rect(diag_toggle_x, diag_toggle_y, toggle_width, toggle_height)
+        pygame.draw.rect(screen, diag_toggle_color, diag_toggle_rect, border_radius=toggle_height//2)
+        
+        # Draw toggle switch
+        diag_switch_pos = diag_toggle_x + toggle_width - toggle_height + 4 if self.diagonals_enabled else diag_toggle_x + 4
+        diag_switch_rect = pygame.Rect(diag_switch_pos, diag_toggle_y + 4, toggle_height - 8, toggle_height - 8)
+        pygame.draw.rect(screen, (255, 255, 255), diag_switch_rect, border_radius=(toggle_height - 8)//2)
+        
+        # Draw toggle labels
+        diag_toggle_label = "ON" if self.diagonals_enabled else "OFF"
+        label = small_font.render(diag_toggle_label, True, (255, 255, 255))
+        diag_label_x = diag_toggle_x + toggle_width + 10
+        screen.blit(label, (diag_label_x, diag_toggle_y + 4))
         
     def handle_click(self, pos: Tuple[int, int]) -> bool:
         """
         Process mouse clicks for algorithm selection.
-        Returns True if any algorithm was selected or if morphing toggle was changed.
+        Returns True if any algorithm was selected or if toggles were changed.
         """
         screen_width = pygame.display.get_surface().get_size()[0]
         panel_width = 200
@@ -182,6 +209,16 @@ class AlgorithmSelector:
             if toggle_rect.collidepoint(pos):
                 self.morphing_enabled = not self.morphing_enabled
                 return True
+                
+            # Check diagonal movement toggle
+            diag_y_pos = morph_y_pos + 30 + 40  
+            diag_toggle_x = screen_width - panel_width + 20
+            diag_toggle_y = diag_y_pos + 30
+            diag_toggle_rect = pygame.Rect(diag_toggle_x, diag_toggle_y, toggle_width, toggle_height)
+            
+            if diag_toggle_rect.collidepoint(pos):
+                self.diagonals_enabled = not self.diagonals_enabled
+                return True
             
         return False
         
@@ -200,3 +237,7 @@ class AlgorithmSelector:
     def get_selected_conflict_resolution(self) -> str:
         """Return the currently selected conflict resolution strategy."""
         return self.selected_conflict
+        
+    def is_diagonals_enabled(self) -> bool:
+        """Return whether diagonal movement is enabled."""
+        return self.diagonals_enabled

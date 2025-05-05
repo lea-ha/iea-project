@@ -90,7 +90,7 @@ public class MinimaxConflictResolver {
             currentPos = agent.start();
         }
 
-        int[][] directions = {{0, 0}, {0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+        int[][] directions = {{0, 0}, {0, 1}, {1, 0}, {0, -1}, {-1, 0}}; // add moore
 
         for (int[] dir : directions) {
             int newX = currentPos.x() + dir[0];

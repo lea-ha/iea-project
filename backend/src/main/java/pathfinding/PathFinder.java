@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class PathFinder {
+    private static boolean allowDiagonals = false;
 
     public abstract List<Coordinate> findPath(
             int[][] grid,
@@ -25,16 +26,39 @@ public abstract class PathFinder {
         }
     }
 
+    public static void setAllowDiagonals(boolean allowDiag) {
+        allowDiagonals = allowDiag;
+    }
+
+    public static boolean getAllowDiagonals() {
+        return allowDiagonals;
+    }
+
     public static List<Coordinate> getNeighbors(Coordinate currentCoordinate, int[][] grid) {
-        int[][] directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}, {0, 0}};
         List<Coordinate> neighbors = new ArrayList<>();
-        for (int[] direction : directions) {
+
+        // (Von Neumann)
+        int[][] cardinalDirections = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}, {0, 0}};
+        for (int[] direction : cardinalDirections) {
             int nx = currentCoordinate.x() + direction[0];
             int ny = currentCoordinate.y() + direction[1];
             if (nx >= 0 && nx < grid.length && ny >= 0 && ny < grid[0].length && grid[ny][nx] != 1) {
                 neighbors.add(Coordinate.with(nx, ny));
             }
         }
+
+        // Add diagonal directions if allowDiagonals is true (Moore)
+        if (allowDiagonals) {
+            int[][] diagonalDirections = {{1,1}, {1,-1}, {-1,-1}, {-1,1}};
+            for (int[] direction : diagonalDirections) {
+                int nx = currentCoordinate.x() + direction[0];
+                int ny = currentCoordinate.y() + direction[1];
+                if (nx >= 0 && nx < grid.length && ny >= 0 && ny < grid[0].length && grid[ny][nx] != 1) {
+                    neighbors.add(Coordinate.with(nx, ny));
+                }
+            }
+        }
+
         return neighbors;
     }
 
@@ -47,7 +71,10 @@ public abstract class PathFinder {
     }
 
     public static int heuristic(Coordinate start, Coordinate goal) {
-        // Manhattan distance
-        return Math.abs(start.x() - goal.x()) + Math.abs(start.y() - goal.y());
+        if (allowDiagonals) {
+            return Math.max(Math.abs(start.x() - goal.x()), Math.abs(start.y() - goal.y()));
+        } else {
+            return Math.abs(start.x() - goal.x()) + Math.abs(start.y() - goal.y());
+        }
     }
 }

@@ -25,6 +25,9 @@ def main():
         # Get the conflict resolution strategy
         conflict_resolution = selector.get_selected_conflict_resolution()
         
+        # Get the diagonal movement status
+        diagonals_enabled = selector.is_diagonals_enabled()
+        
         if not destinations:
             print("No destinations selected, using defaults.")
             origins = [
@@ -60,6 +63,7 @@ def main():
         print(f"Morphing enabled: {morphing_enabled}")
         print(f"Priority strategy: {priority_strategy}")
         print(f"Conflict resolution: {conflict_resolution}")
+        print(f"Diagonal movement: {diagonals_enabled}")
         
         # Create grid with obstacles marked
         grid = [[0 for _ in range(10)] for _ in range(10)]
@@ -76,7 +80,8 @@ def main():
             "algorithm": selected_algorithm,
             "morphing": morphing_enabled, 
             "priorityStrategy": priority_strategy,
-            "conflictResolutionStrategy": conflict_resolution
+            "conflictResolutionStrategy": conflict_resolution,
+            "allowDiagonals": diagonals_enabled  
         }
         
         start_time = time.time()

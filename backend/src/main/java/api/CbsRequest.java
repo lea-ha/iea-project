@@ -7,6 +7,6 @@ public record CbsRequest(
         String algorithm,
         boolean morphing,
         String priorityStrategy,
-        String conflictResolutionStrategy
-) {
-}
+        String conflictResolutionStrategy,
+        boolean allowDiagonals
+) {}
