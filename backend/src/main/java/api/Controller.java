@@ -26,6 +26,9 @@ public class Controller {
         String conflictResolutionStrategy = cbsRequest.conflictResolutionStrategy() != null ?
                 cbsRequest.conflictResolutionStrategy() : "priority";
 
+        // Start timing
+        long startTime = System.nanoTime();
+
         // Create agents with the specified priority strategy
         List<Agent> agents = HungarianSolver.getHungarianAgents(
                 cbsRequest.origins(),
@@ -40,6 +43,14 @@ public class Controller {
                 cbsRequest.morphing(),  // morphing enabled or disabled
                 conflictResolutionStrategy // "priority" or "minimax"
         );
+
+        // End timing
+        long endTime = System.nanoTime();
+
+        double elapsedTimeMs = (endTime - startTime) / 1_000_000.0;
+
+        // Print timing information
+        System.out.println("CBS algorithm execution time: " + elapsedTimeMs + " ms");
 
         if (cbs == null || cbs.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
