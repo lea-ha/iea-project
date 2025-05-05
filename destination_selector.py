@@ -259,3 +259,7 @@ class DestinationSelector:
     def get_selected_conflict_resolution(self) -> str:
         """Return the currently selected conflict resolution strategy."""
         return self.algorithm_selector.get_selected_conflict_resolution()
+        
+    def is_diagonals_enabled(self) -> bool:
+        """Return whether diagonal movement is enabled from the algorithm selector."""
+        return self.algorithm_selector.is_diagonals_enabled()

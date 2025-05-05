@@ -14,8 +14,7 @@ class Coordinate:
 class AgentPath:
     agent_id: int
     path: List[Coordinate]
-
-
+    
 def parse_agent_paths(response_data: Dict[str, List[Dict[str, int]]]) -> List[AgentPath]:
     agent_paths = []
     for agent_id_str, coord_list in response_data.items():
@@ -25,6 +24,9 @@ def parse_agent_paths(response_data: Dict[str, List[Dict[str, int]]]) -> List[Ag
     return agent_paths
 
 def call_cbs_api(payload):
+    if "allowDiagonals" not in payload:
+        payload["allowDiagonals"] = False  
+        
     response = requests.post(url, json=payload)
     if response.ok:
         print("Success!")
