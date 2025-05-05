@@ -16,6 +16,10 @@ class AlgorithmSelector:
         self.priority_strategies = ["y-axis", "manhattan"]
         self.selected_priority = "y-axis"  # Default priority strategy
         
+        # Add conflict resolution strategy selection
+        self.conflict_strategies = ["priority", "minimax"]
+        self.selected_conflict = "priority"  # Default conflict resolution strategy
+        
     def draw(self, screen: pygame.Surface) -> None:
         """Draw the algorithm selection panel."""
         # Set up the right panel
@@ -76,8 +80,31 @@ class AlgorithmSelector:
             label = font.render(strategy.capitalize(), True, (255, 255, 255))
             screen.blit(label, (checkbox_rect.right + 10, checkbox_rect.y))
         
+        # Draw conflict resolution strategy section
+        conflict_y_pos = priority_y_pos + 30 + len(self.priority_strategies) * spacing + 20
+        conflict_title = font.render("Conflict Resolution", True, (255, 255, 255))
+        screen.blit(conflict_title, (screen_width - panel_width + 15, conflict_y_pos))
+        
+        # Draw conflict resolution strategy options
+        for i, strategy in enumerate(self.conflict_strategies):
+            y_pos = conflict_y_pos + 30 + i * spacing
+            
+            # Draw checkbox
+            checkbox_rect = pygame.Rect(screen_width - panel_width + 20, y_pos, checkbox_size, checkbox_size)
+            pygame.draw.rect(screen, (200, 200, 200), checkbox_rect, 2)
+            
+            # Fill checkbox if selected
+            if strategy == self.selected_conflict:
+                inner_rect = pygame.Rect(checkbox_rect.x + 4, checkbox_rect.y + 4,
+                                      checkbox_size - 8, checkbox_size - 8)
+                pygame.draw.rect(screen, (100, 200, 100), inner_rect)
+            
+            # Draw label
+            label = font.render(strategy.capitalize(), True, (255, 255, 255))
+            screen.blit(label, (checkbox_rect.right + 10, checkbox_rect.y))
+        
         # Draw morphing toggle
-        morph_y_pos = priority_y_pos + 30 + len(self.priority_strategies) * spacing + 20
+        morph_y_pos = conflict_y_pos + 30 + len(self.conflict_strategies) * spacing + 20
         morph_title = font.render("Morphing", True, (255, 255, 255))
         screen.blit(morph_title, (screen_width - panel_width + 15, morph_y_pos))
         
@@ -133,9 +160,19 @@ class AlgorithmSelector:
                 if checkbox_rect.collidepoint(pos):
                     self.selected_priority = strategy
                     return True
+                    
+            # Check conflict resolution strategy selection
+            conflict_y_pos = priority_y_pos + 30 + len(self.priority_strategies) * spacing + 20
+            for i, strategy in enumerate(self.conflict_strategies):
+                y_pos = conflict_y_pos + 30 + i * spacing
+                checkbox_rect = pygame.Rect(screen_width - panel_width + 20, y_pos, checkbox_size, checkbox_size)
+                
+                if checkbox_rect.collidepoint(pos):
+                    self.selected_conflict = strategy
+                    return True
             
             # Check morphing toggle
-            morph_y_pos = priority_y_pos + 30 + len(self.priority_strategies) * spacing + 20
+            morph_y_pos = conflict_y_pos + 30 + len(self.conflict_strategies) * spacing + 20
             toggle_width = 50
             toggle_height = 24
             toggle_x = screen_width - panel_width + 20
@@ -159,3 +196,7 @@ class AlgorithmSelector:
     def get_selected_priority(self) -> str:
         """Return the currently selected priority strategy."""
         return self.selected_priority
+        
+    def get_selected_conflict_resolution(self) -> str:
+        """Return the currently selected conflict resolution strategy."""
+        return self.selected_conflict

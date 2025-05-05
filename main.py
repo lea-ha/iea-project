@@ -20,6 +20,9 @@ def main():
     # Get the priority strategy
     priority_strategy = selector.get_selected_priority()
     
+    # Get the conflict resolution strategy
+    conflict_resolution = selector.get_selected_conflict_resolution()
+    
     if not destinations:
         print("No destinations selected, using defaults.")
         origins = [
@@ -50,10 +53,11 @@ def main():
             for i, obs in enumerate(obstacles):
                 print(f"  Obstacle {i+1}: [{obs[0]}, {obs[1]}]")
     
-    # Log the selected algorithm, morphing status, and priority strategy
+    # Log the selected algorithm, morphing status, priority strategy, and conflict resolution strategy
     print(f"Using algorithm: {selected_algorithm}")
     print(f"Morphing enabled: {morphing_enabled}")
     print(f"Priority strategy: {priority_strategy}")
+    print(f"Conflict resolution: {conflict_resolution}")
     
     # Create grid with obstacles marked
     grid = [[0 for _ in range(10)] for _ in range(10)]
@@ -69,7 +73,8 @@ def main():
         "destinations": destinations,
         "algorithm": selected_algorithm,
         "morphing": morphing_enabled,  
-        "priorityStrategy": priority_strategy 
+        "priorityStrategy": priority_strategy,
+        "conflictResolutionStrategy": conflict_resolution
     }
     
     start_time = time.time()

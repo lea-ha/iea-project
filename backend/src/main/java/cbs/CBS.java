@@ -13,13 +13,18 @@ public class CBS {
 
     public static Map<Integer, List<Coordinate>> cbs(
             int[][] grid, List<Agent> agents, HashMap<SubNode, Integer> fallbackReservations) {
-        return cbs(grid, agents, fallbackReservations, "astar", false, null);  // Default to A* without morphing
+        return cbs(grid, agents, fallbackReservations, "astar", false, null, "priority");  // Default to A* without morphing
     }
-
 
     public static Map<Integer, List<Coordinate>> cbs(
             int[][] grid, List<Agent> agents, HashMap<SubNode, Integer> fallbackReservations,
             String algorithm, boolean enableMorphing, Integer maxPathLength) {
+        return cbs(grid, agents, fallbackReservations, algorithm, enableMorphing, maxPathLength, "priority");
+    }
+
+    public static Map<Integer, List<Coordinate>> cbs(
+            int[][] grid, List<Agent> agents, HashMap<SubNode, Integer> fallbackReservations,
+            String algorithm, boolean enableMorphing, Integer maxPathLength, String conflictResolutionStrategy) {
 
         // Get the appropriate pathfinder based on the algorithm parameter
         PathFinder pathFinder = PathFinder.getPathFinder(algorithm);
@@ -63,7 +68,7 @@ public class CBS {
                 Integer fallbackMaxPathLength = fallback.maxPathLength();
                 int newPathLength = sizeAfter == sizeBefore ? fallbackMaxPathLength + 1 : fallbackMaxPathLength; //means 2 agents are clashing -> give them space!
                 // Relaunch CBS with the updated fallback
-                return cbs(grid, agents, fallbackReservations, algorithm, enableMorphing, newPathLength);
+                return cbs(grid, agents, fallbackReservations, algorithm, enableMorphing, newPathLength, conflictResolutionStrategy);
             }
 
             // Reserve the path cells (other agents must avoid these)
@@ -83,7 +88,8 @@ public class CBS {
 
         while (!openSet.isEmpty()) {
             CBSNode node = openSet.poll();
-            Conflict conflict = ConflictDetector.detectConflict(node.agentIdToPath(), priorities);
+            Conflict conflict = ConflictDetector.detectConflict(node.agentIdToPath(), priorities,
+                    conflictResolutionStrategy, grid, agents);
 
             if (conflict == null) {
                 System.out.println("Found solution with " + maxPathLength + " steps");
@@ -127,6 +133,8 @@ public class CBS {
         }
         return null;
     }
+
+    // ... [existing methods unchanged]
 
     public static Map<SubNode, Integer> createReservations(Map<Integer, List<Coordinate>> paths, Integer excludeAgent) {
         Map<SubNode, Integer> reservations = new HashMap<>();

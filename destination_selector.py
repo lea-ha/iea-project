@@ -255,3 +255,7 @@ class DestinationSelector:
     def get_selected_priority(self) -> str:
         """Return the currently selected priority strategy."""
         return self.algorithm_selector.get_selected_priority()
+    
+    def get_selected_conflict_resolution(self) -> str:
+        """Return the currently selected conflict resolution strategy."""
+        return self.algorithm_selector.get_selected_conflict_resolution()

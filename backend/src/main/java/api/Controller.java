@@ -22,6 +22,10 @@ public class Controller {
         String priorityStrategy = cbsRequest.priorityStrategy() != null ?
                 cbsRequest.priorityStrategy() : "y-axis";
 
+        // Get conflict resolution strategy ("priority" if not provided)
+        String conflictResolutionStrategy = cbsRequest.conflictResolutionStrategy() != null ?
+                cbsRequest.conflictResolutionStrategy() : "priority";
+
         // Create agents with the specified priority strategy
         List<Agent> agents = HungarianSolver.getHungarianAgents(
                 cbsRequest.origins(),
@@ -33,7 +37,8 @@ public class Controller {
                 cbsRequest.grid(),
                 agents,
                 cbsRequest.algorithm(), // "astar" or "bfs"
-                cbsRequest.morphing()   // morphing enabled or disabled
+                cbsRequest.morphing(),  // morphing enabled or disabled
+                conflictResolutionStrategy // "priority" or "minimax"
         );
 
         if (cbs == null || cbs.isEmpty()) {
