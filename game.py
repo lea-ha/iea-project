@@ -30,9 +30,20 @@ class Game:
         self.start_time = pygame.time.get_ticks()
         self.elapsed_time = 0
         self.pause_start_time = 0  # To track when pause begins
+        
+        # Add restart functionality
+        self.show_restart = False
+        self.restart_button = pygame.Rect(WIDTH // 2 - 75, HEIGHT // 2 - 25, 150, 50)
+        # Flag to signal when to restart
+        self.restart_game = False
+        
+        # Flag to track if all agents have reached their destinations
+        self.all_completed = False
+        # Store the final completion time
+        self.completion_time = 0
 
-    def run(self) -> None:
-        """Main game loop."""
+    def run(self) -> bool:
+        """Main game loop. Returns True if restart was requested."""
         running = True
         while running:
             current_time = pygame.time.get_ticks()
@@ -40,6 +51,7 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                    return False
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.pause_button.collidepoint(event.pos):
                         if not self.paused:
@@ -49,9 +61,15 @@ class Game:
                             self.start_time += pause_duration
                         
                         self.paused = not self.paused
+                    
+                    # Check if restart button was clicked
+                    if self.show_restart and self.restart_button.collidepoint(event.pos):
+                        return True  # Signal to restart the game
                         
             if not self.paused:
-                self.elapsed_time = current_time - self.start_time
+                # Only update elapsed time if not all agents have reached destination
+                if not self.all_completed:
+                    self.elapsed_time = current_time - self.start_time
                 
                 for cube in self.cubes:
                     cube.update()
@@ -65,23 +83,70 @@ class Game:
                         
                         # Check for overlaps after moving all cubes
                         self.check_overlaps()
+                
+                # Check if all agents have reached their destinations
+                if self.all_agents_reached() and not self.all_completed:
+                    self.all_completed = True
+                    self.completion_time = self.elapsed_time  # Store the completion time
+                    self.show_restart = True
 
             self.draw()
             pygame.display.flip()
             self.clock.tick(60)
 
         pygame.quit()
+        return False
+
+    def all_agents_reached(self) -> bool:
+        """Check if all agents have reached their destinations."""
+        return all(cube.is_reached() for cube in self.cubes)
 
     def draw(self) -> None:
         """Draw the grid, obstacles, cubes, and labels."""
         self.draw_grid()
-        self.draw_obstacles()  # Add this new method call
+        self.draw_obstacles()
         self.draw_destinations()
         for cube in self.cubes:
             cube.draw(self.screen)
         self.draw_stats()
         self.draw_timer()  
         self.draw_pause_button()
+        
+        # Draw restart button if all agents have reached their destinations
+        if self.show_restart:
+            self.draw_restart_button()
+    
+    def draw_restart_button(self) -> None:
+        """Draw the restart button when all agents have reached their destinations."""
+        # Semi-transparent overlay
+        overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 160))  # Black with 60% opacity
+        self.screen.blit(overlay, (0, 0))
+        
+        # Draw the button
+        pygame.draw.rect(self.screen, (50, 150, 50), self.restart_button, border_radius=10)
+        pygame.draw.rect(self.screen, (30, 100, 30), self.restart_button, width=2, border_radius=10)
+        
+        # Button text
+        font = pygame.font.SysFont('Arial', 24)
+        restart_text = font.render("Restart", True, (255, 255, 255))
+        text_rect = restart_text.get_rect(center=self.restart_button.center)
+        self.screen.blit(restart_text, text_rect)
+        
+        # Congratulations text
+        congrats_font = pygame.font.SysFont('Arial', 32)
+        congrats_text = congrats_font.render("All agents reached destinations!", True, (255, 255, 255))
+        congrats_rect = congrats_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 80))
+        self.screen.blit(congrats_text, congrats_rect)
+        
+        # Display completion time - use the stored completion time
+        time_font = pygame.font.SysFont('Arial', 24)
+        minutes = self.completion_time // 60000
+        seconds = (self.completion_time % 60000) // 1000
+        time_text = time_font.render(f"Completion time: {minutes:02d}:{seconds:02d}", True, (255, 255, 255))
+        time_rect = time_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 40))
+        self.screen.blit(time_text, time_rect)
+        
     
     def draw_obstacles(self) -> None:
         """Draw the obstacles on the grid."""
@@ -208,7 +273,11 @@ class Game:
         """
         Draw the timer showing elapsed time below the stats.
         """
-        seconds = self.elapsed_time // 1000
+        # If all agents have reached their destinations, use the stored completion time
+        # Otherwise, use the current elapsed time
+        display_time = self.completion_time if self.all_completed else self.elapsed_time
+        
+        seconds = display_time // 1000
         minutes = seconds // 60
         seconds %= 60
         
